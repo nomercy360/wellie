@@ -34,14 +34,14 @@ jobs:
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-      - name: Update statefulset file
-        run: sed -i 's|maksim1111/wellie-api:latest|${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}|' $GITHUB_WORKSPACE/statefulset/app.yml
+      - name: Update deployment file
+        run: sed -i 's|maksim1111/wellie-api:latest|${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}|' $GITHUB_WORKSPACE/deployment/app.yml
 
       - name: Save DigitalOcean kubeconfig with short-lived credentials
         run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 k8s-fra1
 
       - name: Deploy to DigitalOcean Kubernetes
-        run: kubectl apply -f $GITHUB_WORKSPACE/statefulset
+        run: kubectl apply -f $GITHUB_WORKSPACE/deployment
 
       - name: Verify statefulset
         run: kubectl rollout status statefulset/wellie-api
