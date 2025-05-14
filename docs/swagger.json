@@ -1,0 +1,277 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Wellie application API",
+        "title": "Wellie API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "https://api-wellie.mxksimdev.com",
+    "basePath": "/",
+    "paths": {
+        "/auth/telegram": {
+            "post": {
+                "description": "Authenticate user with Telegram init data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Authenticate with Telegram",
+                "parameters": [
+                    {
+                        "description": "Telegram init data query",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.AuthTelegramRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.AuthTelegramResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or init data",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid init data",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the current user based on the JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get current user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_db.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/physical-stats": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Save physical statistics for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "physical-stats"
+                ],
+                "summary": "Save user physical stats",
+                "parameters": [
+                    {
+                        "description": "Physical stats data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.SavePhysicalStatsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.SavePhysicalStatsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "wellie_internal_contract.AuthTelegramRequest": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string"
+                }
+            }
+        },
+        "wellie_internal_contract.AuthTelegramResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/wellie_internal_db.User"
+                }
+            }
+        },
+        "wellie_internal_contract.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "wellie_internal_contract.SavePhysicalStatsRequest": {
+            "type": "object",
+            "properties": {
+                "body_fat_percentage": {
+                    "type": "number"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "height": {
+                    "type": "number"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
+        "wellie_internal_contract.SavePhysicalStatsResponse": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "$ref": "#/definitions/wellie_internal_db.User"
+                }
+            }
+        },
+        "wellie_internal_db.PhysicalStats": {
+            "type": "object",
+            "properties": {
+                "body_fat_percentage": {
+                    "type": "number"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "height": {
+                    "type": "number"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
+        "wellie_internal_db.User": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "physical_stats": {
+                    "$ref": "#/definitions/wellie_internal_db.PhysicalStats"
+                },
+                "telegram_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "JWT Authorization header using Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

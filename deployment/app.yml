@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    service: wellie-api
+  name: wellie-api
+  namespace: default
+spec:
+  serviceName: "wellie-api"
+  replicas: 1
+  selector:
+    matchLabels:
+      service: wellie-api
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+  template:
+    metadata:
+      labels:
+        service: wellie-api
+    spec:
+      containers:
+        - image: maksim1111/wellie-api:latest
+          name: wellie-api
+          imagePullPolicy: IfNotPresent
+          command: [ "/app/main" ]
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+          volumeMounts:
+            - mountPath: /app/storage
+              subPath: storage
+              name: wellie-api-data
+            - mountPath: /app/config.yml
+              name: wellie-api-config
+              subPath: config.yml
+          env:
+            - name: CONFIG_FILE_PATH
+              value: /app/config.yml
+          readinessProbe:
+            exec:
+              command: [ "sqlite3", "/app/storage/db.sqlite", ".tables" ]
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            timeoutSeconds: 2
+      volumes:
+        - name: wellie-api-config
+          secret:
+            secretName: wellie-api-secrets
+  volumeClaimTemplates:
+    - metadata:
+        name: wellie-api-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: "do-block-storage"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: wellie-api
+  name: wellie-api
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    service: wellie-api
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wellie-api
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "200m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: wellie-api.mxksimdev.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: wellie-api
+                port:
+                  number: 8080

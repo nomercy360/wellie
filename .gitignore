@@ -1,0 +1,7 @@
+config.yml
+config.production.yml
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.idea
+**/.claude/settings.local.json
