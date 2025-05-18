@@ -1,5 +1,5 @@
-import {createStore} from 'solid-js/store'
-import {User as ApiUser} from '~/lib/api'
+import { createStore } from 'solid-js/store'
+import { User as ApiUser } from '~/types/types'
 
 export type User = ApiUser
 

@@ -3,7 +3,11 @@ import { A } from '@solidjs/router'
 import type { Component } from 'solid-js'
 
 export const Link: Component<AnchorProps> = props => {
-	const onClick = (e: MouseEvent) => {
+	const onClick = (e: MouseEvent & { currentTarget: HTMLAnchorElement; target: Element }) => {
+		if (typeof props.onClick === 'function') {
+			props.onClick(e);
+		}
+
 		const targetUrl = new URL(props.href, window.location.toString())
 		const currentUrl = new URL(window.location.toString())
 		const isExternal =

@@ -1,16 +1,17 @@
 import { createEffect, createSignal, Match, Switch } from 'solid-js'
-import { setToken, setUser } from './store'
+import { setToken, setUser, store } from './store'
 import { API_BASE_URL } from '~/lib/api'
 import { NavigationProvider } from './lib/useNavigation'
 import { useNavigate } from '@solidjs/router'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 
+
 export const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
 			retry: 2,
-			staleTime: 1000 * 60 * 5, // 5 minutes
-			gcTime: 1000 * 60 * 5, // 5 minutes
+			staleTime: 1000 * 60 * 5,
+			gcTime: 1000 * 60 * 5, 
 		},
 		mutations: {
 			retry: 2,
@@ -31,7 +32,7 @@ export default function App(props: any) {
 			const initData = window.Telegram.WebApp.initData
 			const startapp = window.Telegram.WebApp.initDataUnsafe.start_param
 
-			const resp = await fetch(`${API_BASE_URL}/auth/telegram`, {
+			const response = await fetch(`${API_BASE_URL}/auth/telegram`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -39,13 +40,13 @@ export default function App(props: any) {
 				body: JSON.stringify({ query: initData }),
 			})
 
-			if (resp.status !== 200) {
+			if (response.status !== 200) {
 				setIsAuthenticated(false)
 				setIsLoading(false)
 				return
 			}
 
-			const data = await resp.json()
+			const data = await response.json()
 
 			setUser(data.user)
 			setToken(data.token)
@@ -58,6 +59,11 @@ export default function App(props: any) {
 
 			setIsAuthenticated(true)
 			setIsLoading(false)
+
+			if (!store.user?.name) {
+				navigate('/setup')
+			}
+
 
 		} catch (e) {
 			console.error('Failed to authenticate user:', e)
@@ -83,6 +89,7 @@ export default function App(props: any) {
 							</p>
 						</div>
 					</Match>
+				 
 				</Switch>
 			</QueryClientProvider>
 		</NavigationProvider>
