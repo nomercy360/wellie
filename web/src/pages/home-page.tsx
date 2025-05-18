@@ -1,5 +1,6 @@
 import { Motion } from '@motionone/solid';
 import { useNavigate } from '@solidjs/router'
+import { createSignal, Match, Switch } from 'solid-js';
 import { Link } from '~/components/link';
 import ProgressTabs from '~/components/progress-tabs';
 import { store } from "~/store";
@@ -7,16 +8,23 @@ import { store } from "~/store";
 
 export default function HomePage() {
 
+	const [selectedTab, setSelectedTab] = createSignal("rewards");
+
 	const navigate = useNavigate()
 
 	const testArrayItems = [
 		1, 2, 3, 4, 5, 6, 7, 8
 	]
 
+	const handleUpdateTab = (tab: string) => {
+		setSelectedTab(tab);
+		console.log("PROGRESS TAB", selectedTab());
+	}
 
-	console.log("USER", store.user)
 
 	return (
+
+
 		<div class="relative flex flex-col items-center w-full h-screen overflow-y-auto pb-20">
 			{/* Header */}
 			<div class="h-20 flex-shrink-0 w-full fixed flex flex-row justify-between items-center p-5 z-50 bg-[#E9F6FF]">
@@ -37,59 +45,143 @@ export default function HomePage() {
 					/>
 				</Link>
 			</div>
-			<Motion.div
-				class="w-full"
-				initial={{ y: -200, opacity: 10 }}
-				animate={{ y: 0, opacity: 1 }}
-				transition={{ duration: 1 }}
-			>
 
-				{/* Content Top*/}
-				<div class="relative">
-					<div class="bg-[#E9F6FF] h-[400px] flex flex-col items-center justify-center">
-						{/* Контент */}
-						<h1 class="text-2xl font-bold">0 / 90</h1>
-						<p class="text-center px-4">You are keeping your calories in deficit. Keep going and you’ll achieve your goal.</p>
+
+			<Switch>
+				<Match when={selectedTab() === "rewards"}>
+					<Motion.div
+						class="w-full"
+						initial={{ y: -200, opacity: 10 }}
+						animate={{ y: 0, opacity: 1 }}
+						transition={{ duration: 1 }}
+					>
+
+						{/* Content Top*/}
+						<div class="relative">
+							<div class="bg-[#E9F6FF] h-[400px] flex flex-col items-center justify-center">
+								{/* Контент */}
+								<h1 class="text-2xl font-bold">0 / 90</h1>
+								<p class="text-center px-4">You are keeping your calories in deficit. Keep going and you’ll achieve your goal.</p>
+							</div>
+
+							{/* Волна снизу */}
+							<svg
+								class="absolute bottom-0 left-0 w-full"
+								viewBox="0 0 1440 40"
+								preserveAspectRatio="none"
+							>
+								<path
+									fill="white"
+									d="M0,0 C720,40 720,40 1440,0 L1440,40 L0,40 Z"
+								/>
+							</svg>
+						</div>
+
+					</Motion.div>
+				</Match>
+				<Match when={selectedTab() === "statistics"}>
+					<Motion.div
+						class="w-full"
+						initial={{ y: -200, opacity: 10 }}
+						animate={{ y: 0, opacity: 1 }}
+						transition={{ duration: 1 }}
+					>
+
+						{/* Content Top*/}
+						<div class="relative">
+							<div class="bg-gray-100 h-[400px] flex flex-col items-center justify-center">
+								{/* Контент */}
+								<h1 class="text-2xl font-bold">0 / 90</h1>
+								<p class="text-center px-4">You are keeping your calories in deficit. Keep going and you’ll achieve your goal.</p>
+							</div>
+
+							{/* Волна снизу */}
+							<svg
+								class="absolute bottom-0 left-0 w-full"
+								viewBox="0 0 1440 40"
+								preserveAspectRatio="none"
+							>
+								<path
+									fill="white"
+									d="M0,0 C720,40 720,40 1440,0 L1440,40 L0,40 Z"
+								/>
+							</svg>
+						</div>
+
+					</Motion.div>
+				</Match>
+			</Switch>
+
+
+			{/* Tabs */}
+			<div class="w-full flex flex-col items-center justify-center">
+
+				<div class="flex items-center justify-center h-[50px] w-full m-5 ">
+					<div
+						onClick={() => handleUpdateTab("rewards")}
+						class={`cursor-pointer flex items-center justify-center h-[25px] w-auto px-4 py-2 m-2 rounded-full transition 
+	  					${selectedTab() === "rewards"
+								? "bg-primary text-secondary"
+								: "bg-secondary text-primary"
+							}`}
+					>
+						<span>Rewards</span>
 					</div>
 
-					{/* Волна снизу */}
-					<svg
-						class="absolute bottom-0 left-0 w-full"
-						viewBox="0 0 1440 40"
-						preserveAspectRatio="none"
+					<div
+						onClick={() => handleUpdateTab("statistics")}
+						class={`cursor-pointer flex items-center justify-center h-[25px] w-auto px-4 py-2 m-2 rounded-full transition 
+	  						${selectedTab() === "statistics"
+								? "bg-primary text-secondary"
+								: "bg-secondary text-primary"
+							}`}
 					>
-						<path
-							fill="white"
-							d="M0,0 C720,40 720,40 1440,0 L1440,40 L0,40 Z"
-						/>
-					</svg>
+						<span>Statistics</span>
+					</div>
 				</div>
-
-			</Motion.div>
-			
-
-			<ProgressTabs />
+			</div>
 
 
-			<Motion.div
-				class="w-full"
-				initial={{ y: 200, opacity: 0 }}
-				animate={{ y: 0, opacity: 1 }}
-				transition={{ duration: 1 }}
-			>
-				{/* Content Bottom*/}
-				<div class="grid grid-cols-2 justify-items-center gap-2 px-3 h-full w-full bg-white">
-					{testArrayItems.map((item) => (
-						<div class="flex flex-row items-center justify-center h-[204px] w-[204px] rounded-[20px] bg-[#EEF9FF]">
-							<h1>
-								{item}
-							</h1>
+			<Switch>
+				<Match when={selectedTab() === "rewards"}>
+					<Motion.div
+						class="w-full"
+						initial={{ y: 200, opacity: 0 }}
+						animate={{ y: 0, opacity: 1 }}
+						transition={{ duration: 1 }}
+					>
+						{/* Content Bottom*/}
+						<div class="grid grid-cols-2 justify-items-center gap-2 px-3 h-full w-full bg-white">
+							{testArrayItems.map((item) => (
+								<div class="flex flex-row items-center justify-center h-[204px] w-[204px] rounded-[20px] bg-[#EEF9FF]">
+									<h1>
+										{item}
+									</h1>
+								</div>
+							))}
 						</div>
-					))}
-				</div>
-			</Motion.div>
-
-
+					</Motion.div>
+				</Match>
+				<Match when={selectedTab() === "statistics"}>
+					<Motion.div
+						class="w-full"
+						initial={{ y: 200, opacity: 0 }}
+						animate={{ y: 0, opacity: 1 }}
+						transition={{ duration: 1 }}
+					>
+						{/* Content Bottom*/}
+						<div class="grid grid-cols-2 justify-items-center gap-2 px-3 h-full w-full bg-white">
+							{testArrayItems.map((item) => (
+								<div class="flex flex-row items-center justify-center h-[204px] w-[204px] rounded-[20px] bg-gray-100">
+									<h1>
+										{item}
+									</h1>
+								</div>
+							))}
+						</div>
+					</Motion.div>
+				</Match>
+			</Switch>
 		</div>
 	)
 }

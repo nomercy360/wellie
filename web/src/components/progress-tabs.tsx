@@ -1,8 +1,14 @@
 import { createSignal, Show } from "solid-js";
-import { store } from "~/store";
+import { setProgressTab, store } from "~/store";
 
 export default function ProgressTabs() {
   const [selectedTab, setSelectedTab] = createSignal("rewards");
+
+
+  const handleUpdateTab = (tab: string) => {
+    setSelectedTab(tab);
+    setProgressTab(tab);
+  }
 
   return (
     <div class="w-full flex flex-col items-center justify-center">
