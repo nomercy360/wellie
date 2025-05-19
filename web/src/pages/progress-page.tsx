@@ -6,7 +6,7 @@ import ProgressTabs from '~/components/progress-tabs';
 import { store } from "~/store";
 
 
-export default function HomePage() {
+export default function ProgressPage() {
 
 	const [selectedTab, setSelectedTab] = createSignal("rewards");
 
@@ -14,6 +14,10 @@ export default function HomePage() {
 
 	const testArrayItems = [
 		1, 2, 3, 4, 5, 6, 7, 8
+	]
+
+	const mockDays = [
+		"M", "T", "W", "T", "F", "S", "S"
 	]
 
 	const handleUpdateTab = (tab: string) => {
@@ -47,70 +51,41 @@ export default function HomePage() {
 			</div>
 
 
-			<Switch>
-				<Match when={selectedTab() === "rewards"}>
-					<Motion.div
-						class="w-full"
-						initial={{ y: -200, opacity: 10 }}
-						animate={{ y: 0, opacity: 1 }}
-						transition={{ duration: 1 }}
-					>
+			<Motion.div
+				class="w-full"
+				initial={{ y: -200, opacity: 10 }}
+				animate={{ y: 0, opacity: 1 }}
+				transition={{ duration: 0.4 }}
+			>
 
-						{/* Content Top*/}
-						<div class="relative">
-							<div class="bg-[#E9F6FF] h-[400px] flex flex-col items-center justify-center">
-								{/* Контент */}
-								<h1 class="text-2xl font-bold">0 / 90</h1>
-								<p class="text-center px-4">You are keeping your calories in deficit. Keep going and you’ll achieve your goal.</p>
-							</div>
-
-							{/* Волна снизу */}
-							<svg
-								class="absolute bottom-0 left-0 w-full"
-								viewBox="0 0 1440 40"
-								preserveAspectRatio="none"
-							>
-								<path
-									fill="white"
-									d="M0,0 C720,40 720,40 1440,0 L1440,40 L0,40 Z"
-								/>
-							</svg>
+				{/* Content Top*/}
+				<div class="relative">
+					<div class="bg-[#E9F6FF] h-[400px] gap-4 flex flex-col items-center justify-center">
+						{/* Контент */}
+						<p class="text-center text-xs font-bold">Days completed</p>
+						<p class="text-4xl font-bold">0 / 90</p>
+						<p class="text-center w-3/4 text-gray-500">You are keeping your calories in deficit. Keep going and you’ll achieve your goal.</p>
+						<div class="flex flex-row items-center justify-center gap-2 mt-8">
+							{mockDays.map((item) => (
+								<div class="flex flex-row items-center justify-center  w-[32px] h-[32px] rounded-[14px] bg-white p-2">
+									<p class="text-xs font-bold">{item}</p>
+								</div>
+							))}
 						</div>
-
-					</Motion.div>
-				</Match>
-				<Match when={selectedTab() === "statistics"}>
-					<Motion.div
-						class="w-full"
-						initial={{ y: -200, opacity: 10 }}
-						animate={{ y: 0, opacity: 1 }}
-						transition={{ duration: 1 }}
+					</div>
+					<svg
+						class="absolute bottom-0 left-0 w-full"
+						viewBox="0 0 1440 40"
+						preserveAspectRatio="none"
 					>
+						<path
+							fill="white"
+							d="M0,0 C720,40 720,40 1440,0 L1440,40 L0,40 Z"
+						/>
+					</svg>
+				</div>
+			</Motion.div>
 
-						{/* Content Top*/}
-						<div class="relative">
-							<div class="bg-gray-100 h-[400px] flex flex-col items-center justify-center">
-								{/* Контент */}
-								<h1 class="text-2xl font-bold">0 / 90</h1>
-								<p class="text-center px-4">You are keeping your calories in deficit. Keep going and you’ll achieve your goal.</p>
-							</div>
-
-							{/* Волна снизу */}
-							<svg
-								class="absolute bottom-0 left-0 w-full"
-								viewBox="0 0 1440 40"
-								preserveAspectRatio="none"
-							>
-								<path
-									fill="white"
-									d="M0,0 C720,40 720,40 1440,0 L1440,40 L0,40 Z"
-								/>
-							</svg>
-						</div>
-
-					</Motion.div>
-				</Match>
-			</Switch>
 
 
 			{/* Tabs */}
@@ -148,7 +123,7 @@ export default function HomePage() {
 						class="w-full"
 						initial={{ y: 200, opacity: 0 }}
 						animate={{ y: 0, opacity: 1 }}
-						transition={{ duration: 1 }}
+						transition={{ duration: 0.4 }}
 					>
 						{/* Content Bottom*/}
 						<div class="grid grid-cols-2 justify-items-center gap-2 px-3 h-full w-full bg-white">
@@ -167,7 +142,7 @@ export default function HomePage() {
 						class="w-full"
 						initial={{ y: 200, opacity: 0 }}
 						animate={{ y: 0, opacity: 1 }}
-						transition={{ duration: 1 }}
+						transition={{ duration: 0.5 }}
 					>
 						{/* Content Bottom*/}
 						<div class="grid grid-cols-2 justify-items-center gap-2 px-3 h-full w-full bg-white">

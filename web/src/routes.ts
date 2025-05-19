@@ -1,5 +1,5 @@
 import type {RouteDefinition} from '@solidjs/router'
-import HomePage from '~/pages/home-page'
+import ProgressPage from '~/pages/progress-page'
 import AddPhysical from '~/pages/add-physical'
 import NavigationTabs from '~/components/navigation-tabs'
 import CookBook from '~/pages/cook-book'
@@ -12,7 +12,7 @@ export const routes: RouteDefinition[] = [
         children: [
             {
                 'path': '/',
-                'component': HomePage,
+                'component': ProgressPage,
             },
             {
                 'path': '/cook-book',

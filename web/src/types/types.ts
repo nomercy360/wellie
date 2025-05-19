@@ -17,3 +17,13 @@ export type CurrentUser = {
     updated_at: string
     username: string
 }
+
+
+
+export type FormHeaderProps = {
+    title?: string
+    description?: string
+    step: number
+    children: any
+    maxSteps: number
+}

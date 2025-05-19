@@ -4,15 +4,11 @@ import {
   createEffect,
   createSignal,
   For,
-  Match,
   onCleanup,
   onMount,
   Show,
-  Switch
 } from 'solid-js'
-
 import ProcessBar from '~/components/pocess-bar.tsx/ProcessBar'
-import WiggleItem from '~/components/test'
 import { useBackButton } from '~/lib/useBackButton'
 import { useMainButton } from '~/lib/useMainButton'
 import { useNavigation } from '~/lib/useNavigation'
@@ -53,6 +49,9 @@ export default function SetupProfilePage() {
   const backButton = useBackButton()
   const { navigateBack } = useNavigation()
 
+
+
+//переписать 
   const onContinue = async () => {
     if (step() === 1) {
       setStep(2)
@@ -133,10 +132,6 @@ export default function SetupProfilePage() {
       mainButton.enable('Continue')
     }
   })
-
-
-
-
 
 
   return (

@@ -1,14 +1,7 @@
 import { Motion } from '@motionone/solid'
 import { For, Show } from 'solid-js'
 import { cn } from '~/lib/utils'
-
-type FormHeaderProps = {
-    title?: string
-    description?: string
-    step: number
-    children: any
-    maxSteps: number
-}
+import { FormHeaderProps } from '~/types/types'
 
 
 export default function ProcessBar(props: FormHeaderProps) {
