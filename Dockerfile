@@ -27,5 +27,6 @@ RUN apk add --no-cache \
 
 COPY --from=build /go/bin/main /app/main
 COPY /docs /app/docs
+COPY /templates /app/templates
 
 CMD [ "/app/main" ]
