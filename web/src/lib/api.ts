@@ -9,7 +9,7 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestInit
 }> {
     try {
         console.log(`Making request to ${API_BASE_URL}/v1${endpoint} with token: ${store.token?.substring(0, 10)}...`)
-        
+
         const response = await fetch(`${API_BASE_URL}/v1${endpoint}`, {
             ...options,
             headers: {
@@ -89,6 +89,112 @@ export async function addUserPhysical(data: PhysicalData) {
 
 export async function getUserPhysical() {
     return apiRequest('/physical-stats', {
+        method: 'GET',
+    });
+}
+
+export interface Macronutrients {
+    proteins_g: number;
+    fats_g: number;
+    carbs_g: number;
+}
+
+export interface Micronutrients {
+    [key: string]: number | undefined;
+}
+
+export interface Ingredient {
+    name: string;
+    quantity: number;
+    unit: string;
+    type: string;
+    state: string;
+}
+
+export interface FoodLog {
+    id: string;
+    food_item_id: string;
+    name: string;
+    quantity: number;
+    calories: number;
+    image_url: string;
+    meal_type: string;
+    log_date: string;
+    macronutrients: Macronutrients;
+    ingredients: Ingredient[];
+}
+
+export interface RecognitionSummary {
+    total_calories: number;
+    total_proteins: number;
+    total_carbs: number;
+    total_fats: number;
+    confidence: number;
+    items_detected: number;
+}
+
+export interface FoodRecognitionResponse {
+    food_logs: FoodLog[];
+    summary: RecognitionSummary;
+}
+
+export interface FoodItem {
+    id: string;
+    name: string;
+    description: string;
+    calories: number;
+    image_url: string;
+    tags: string[];
+    macronutrients: Macronutrients;
+    micronutrients: Micronutrients;
+    ingredients: Ingredient[];
+    cooking_time: string;
+}
+
+export interface DailyFoodLog {
+    date: string;
+    total_calories: number;
+    logs: {
+        id: string;
+        food_item_id: string;
+        name: string;
+        calories: number;
+        log_time: string;
+        image_url: string;
+    }[];
+}
+
+
+export async function recognizeFood(imageFile: File): Promise<{
+    data: FoodRecognitionResponse | null;
+    error: string | null;
+}> {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    return apiRequest<FoodRecognitionResponse>('/food/recognize', {
+        method: 'POST',
+        headers: {
+            'Content-Type': undefined as any, // Let browser set multipart/form-data boundary
+        },
+        body: formData,
+    });
+}
+
+export async function getFoodItem(id: string): Promise<{
+    data: FoodItem | null;
+    error: string | null;
+}> {
+    return apiRequest<FoodItem>(`/food/${id}`, {
+        method: 'GET',
+    });
+}
+
+export async function getFoodLogs(): Promise<{
+    data: DailyFoodLog[] | null;
+    error: string | null;
+}> {
+    return apiRequest<DailyFoodLog[]>('/food-logs', {
         method: 'GET',
     });
 }

@@ -33,7 +33,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.AuthTelegramRequest"
+                            "$ref": "#/definitions/AuthTelegramRequest"
                         }
                     }
                 ],
@@ -41,25 +41,178 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.AuthTelegramResponse"
+                            "$ref": "#/definitions/AuthTelegramResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request or init data",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid init data",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/food-logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get food logs for the authenticated user for the last 7 days",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "food"
+                ],
+                "summary": "Get user food logs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_handler.DailyFoodLogs"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/food/recognize": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload a food image and get nutritional information",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "food"
+                ],
+                "summary": "Recognize food from image",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Food image",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.FoodRecognitionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/food/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed information about a specific food item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "food"
+                ],
+                "summary": "Get food item details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Food item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.FoodDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
@@ -87,19 +240,19 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_db.User"
+                            "$ref": "#/definitions/User"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -130,7 +283,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.SavePhysicalStatsRequest"
+                            "$ref": "#/definitions/SavePhysicalStatsRequest"
                         }
                     }
                 ],
@@ -138,25 +291,25 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.SavePhysicalStatsResponse"
+                            "$ref": "#/definitions/SavePhysicalStatsResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "$ref": "#/definitions/wellie_internal_contract.ErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -164,7 +317,7 @@
         }
     },
     "definitions": {
-        "wellie_internal_contract.AuthTelegramRequest": {
+        "AuthTelegramRequest": {
             "type": "object",
             "properties": {
                 "query": {
@@ -172,18 +325,18 @@
                 }
             }
         },
-        "wellie_internal_contract.AuthTelegramResponse": {
+        "AuthTelegramResponse": {
             "type": "object",
             "properties": {
                 "token": {
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/wellie_internal_db.User"
+                    "$ref": "#/definitions/User"
                 }
             }
         },
-        "wellie_internal_contract.ErrorResponse": {
+        "ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -191,14 +344,25 @@
                 }
             }
         },
-        "wellie_internal_contract.SavePhysicalStatsRequest": {
+        "Gender": {
+            "type": "string",
+            "enum": [
+                "male",
+                "female"
+            ],
+            "x-enum-varnames": [
+                "GenderMale",
+                "GenderFemale"
+            ]
+        },
+        "PhysicalStats": {
             "type": "object",
             "properties": {
                 "body_fat_percentage": {
                     "type": "number"
                 },
                 "gender": {
-                    "type": "string"
+                    "$ref": "#/definitions/Gender"
                 },
                 "height": {
                     "type": "number"
@@ -208,32 +372,32 @@
                 }
             }
         },
-        "wellie_internal_contract.SavePhysicalStatsResponse": {
+        "SavePhysicalStatsRequest": {
+            "type": "object",
+            "properties": {
+                "body_fat_percentage": {
+                    "type": "number"
+                },
+                "gender": {
+                    "$ref": "#/definitions/Gender"
+                },
+                "height": {
+                    "type": "number"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
+        "SavePhysicalStatsResponse": {
             "type": "object",
             "properties": {
                 "user": {
-                    "$ref": "#/definitions/wellie_internal_db.User"
+                    "$ref": "#/definitions/User"
                 }
             }
         },
-        "wellie_internal_db.PhysicalStats": {
-            "type": "object",
-            "properties": {
-                "body_fat_percentage": {
-                    "type": "number"
-                },
-                "gender": {
-                    "type": "string"
-                },
-                "height": {
-                    "type": "number"
-                },
-                "weight": {
-                    "type": "number"
-                }
-            }
-        },
-        "wellie_internal_db.User": {
+        "User": {
             "type": "object",
             "properties": {
                 "avatar_url": {
@@ -252,7 +416,7 @@
                     "type": "string"
                 },
                 "physical_stats": {
-                    "$ref": "#/definitions/wellie_internal_db.PhysicalStats"
+                    "$ref": "#/definitions/PhysicalStats"
                 },
                 "telegram_id": {
                     "type": "integer"
@@ -262,6 +426,203 @@
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "echo.HTTPError": {
+            "type": "object",
+            "properties": {
+                "message": {}
+            }
+        },
+        "internal_handler.DailyFoodLogs": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handler.FoodLogSummary"
+                    }
+                },
+                "total_calories": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_handler.FoodDetailResponse": {
+            "type": "object",
+            "properties": {
+                "calories": {
+                    "type": "integer"
+                },
+                "cooking_time": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "ingredients": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/wellie_internal_db.IngredientInfo"
+                    }
+                },
+                "macronutrients": {
+                    "$ref": "#/definitions/wellie_internal_db.Macronutrients"
+                },
+                "micronutrients": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "internal_handler.FoodLogDetail": {
+            "type": "object",
+            "properties": {
+                "calories": {
+                    "type": "integer"
+                },
+                "food_item_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "ingredients": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/wellie_internal_db.IngredientInfo"
+                    }
+                },
+                "log_date": {
+                    "type": "string"
+                },
+                "macronutrients": {
+                    "$ref": "#/definitions/wellie_internal_db.Macronutrients"
+                },
+                "meal_type": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                }
+            }
+        },
+        "internal_handler.FoodLogSummary": {
+            "type": "object",
+            "properties": {
+                "calories": {
+                    "type": "integer"
+                },
+                "food_item_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "log_time": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.FoodRecognitionResponse": {
+            "type": "object",
+            "properties": {
+                "food_logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handler.FoodLogDetail"
+                    }
+                },
+                "summary": {
+                    "$ref": "#/definitions/internal_handler.RecognitionSummary"
+                }
+            }
+        },
+        "internal_handler.RecognitionSummary": {
+            "type": "object",
+            "properties": {
+                "confidence": {
+                    "type": "number"
+                },
+                "items_detected": {
+                    "type": "integer"
+                },
+                "total_calories": {
+                    "type": "number"
+                },
+                "total_carbs": {
+                    "type": "number"
+                },
+                "total_fats": {
+                    "type": "number"
+                },
+                "total_proteins": {
+                    "type": "number"
+                }
+            }
+        },
+        "wellie_internal_db.IngredientInfo": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "wellie_internal_db.Macronutrients": {
+            "type": "object",
+            "properties": {
+                "carbs_g": {
+                    "type": "number"
+                },
+                "fats_g": {
+                    "type": "number"
+                },
+                "proteins_g": {
+                    "type": "number"
                 }
             }
         }
