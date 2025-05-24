@@ -122,6 +122,22 @@ func (h *Handler) handleUpdate(update tgbotapi.Update) (msg *telegram.SendMessag
 		case "help":
 			msg.Text = "TODO: Справка по командам\\!"
 			msg.ParseMode = models.ParseModeMarkdown
+		case "test":
+			webAppInfo := &models.WebAppInfo{
+				URL: "https://127.0.0.1:3000",
+			}
+			replyMarkup := &models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{
+					{
+						{
+							Text:   "Test WebApp",
+							WebApp: webAppInfo,
+						},
+					},
+				},
+			}
+			msg.Text = "for local dev"
+			msg.ReplyMarkup = replyMarkup
 		default:
 			msg.Text = "Неизвестная команда. Используй /help для получения справки."
 		}
