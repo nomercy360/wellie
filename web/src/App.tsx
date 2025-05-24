@@ -11,7 +11,7 @@ export const queryClient = new QueryClient({
 		queries: {
 			retry: 2,
 			staleTime: 1000 * 60 * 5,
-			gcTime: 1000 * 60 * 5, 
+			gcTime: 1000 * 60 * 5,
 		},
 		mutations: {
 			retry: 2,
@@ -89,7 +89,7 @@ export default function App(props: any) {
 							</p>
 						</div>
 					</Match>
-				 
+
 				</Switch>
 			</QueryClientProvider>
 		</NavigationProvider>

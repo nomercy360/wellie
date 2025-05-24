@@ -48,9 +48,9 @@ func (s *Storage) UpdateSchema() error {
 	   name TEXT NOT NULL,
 	   barcode TEXT,
 	   calories INTEGER NOT NULL,
-	   proteins INTEGER NOT NULL,
-	   fats INTEGER NOT NULL,
-	   carbs INTEGER NOT NULL,
+	   macronutrients JSON NOT NULL,
+	   micronutrients JSON,
+	   ingredients JSON,
 	   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);
@@ -61,6 +61,7 @@ func (s *Storage) UpdateSchema() error {
 	   food_item_id TEXT NOT NULL,
 	   quantity REAL NOT NULL,
 	   meal_type TEXT NOT NULL, -- 'breakfast', 'lunch', 'dinner', 'snack'
+	   image_url TEXT,
 	   log_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

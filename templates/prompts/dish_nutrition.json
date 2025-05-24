@@ -1,0 +1,118 @@
+{
+  "model": "gpt-4.1-mini",
+  "input": [
+    {
+      "role": "system",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Estimate the total and per-item macronutrients (calories, protein, carbs, fats) and key micronutrients (e.g., sodium, fiber, iron, calcium, potassium, vitamin A, C) from the given structured JSON of detected foods. Use standard portion-based nutritional databases. Note any assumptions and reflect confidence where possible"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "{{dishDescription}}"
+        }
+      ]
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "dish_nutrition",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "required": [
+          "name",
+          "calories_kcal",
+          "protein_g",
+          "carbohydrates_g",
+          "fat_g",
+          "micronutrients"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the food item."
+          },
+          "fat_g": {
+            "type": "number",
+            "description": "Amount of fat in grams."
+          },
+          "protein_g": {
+            "type": "number",
+            "description": "Amount of protein in grams."
+          },
+          "calories_kcal": {
+            "type": "number",
+            "description": "Total calories in kilocalories."
+          },
+          "micronutrients": {
+            "type": "object",
+            "required": [
+              "sodium_mg",
+              "fiber_g",
+              "sugar_g",
+              "iron_mg",
+              "calcium_mg",
+              "vitamin_c_mg",
+              "vitamin_a_iu",
+              "potassium_mg"
+            ],
+            "properties": {
+              "fiber_g": {
+                "type": "number",
+                "description": "Amount of fiber in grams."
+              },
+              "iron_mg": {
+                "type": "number",
+                "description": "Amount of iron in milligrams."
+              },
+              "sugar_g": {
+                "type": "number",
+                "description": "Amount of sugar in grams."
+              },
+              "sodium_mg": {
+                "type": "number",
+                "description": "Amount of sodium in milligrams."
+              },
+              "calcium_mg": {
+                "type": "number",
+                "description": "Amount of calcium in milligrams."
+              },
+              "potassium_mg": {
+                "type": "number",
+                "description": "Amount of potassium in milligrams."
+              },
+              "vitamin_a_iu": {
+                "type": "number",
+                "description": "Amount of vitamin A in international units."
+              },
+              "vitamin_c_mg": {
+                "type": "number",
+                "description": "Amount of vitamin C in milligrams."
+              }
+            },
+            "additionalProperties": false
+          },
+          "carbohydrates_g": {
+            "type": "number",
+            "description": "Amount of carbohydrates in grams."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "reasoning": {},
+  "tools": [],
+  "temperature": 1,
+  "max_output_tokens": 2048,
+  "top_p": 1,
+  "store": true
+}

@@ -104,7 +104,13 @@ func SetupHandlerDependencies(t *testing.T) *echo.Echo {
 	// Create a mock storage provider for testing
 	mockStorage := &MockStorageProvider{}
 
-	h := handler.New(bot, dbStorage, "hello-world", TestBotToken, "https://hello.world", mockStorage)
+	handlerConfig := handler.Config{
+		JWTSecret:    "hello-world",
+		BotToken:     TestBotToken,
+		WebAppURL:    "https://hello.world",
+		OpenAIAPIKey: "",
+	}
+	h := handler.New(bot, dbStorage, handlerConfig, mockStorage)
 
 	e := echo.New()
 

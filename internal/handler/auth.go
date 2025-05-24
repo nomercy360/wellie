@@ -45,7 +45,7 @@ func (h *Handler) TelegramAuth(c echo.Context) error {
 	log.Printf("AuthTelegram: %+v", req)
 
 	expIn := 24 * time.Hour
-	botToken := h.botToken
+	botToken := h.config.BotToken
 
 	if err := initdata.Validate(req.Query, botToken, expIn); err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, ErrInvalidInitData)
@@ -113,7 +113,7 @@ func (h *Handler) TelegramAuth(c echo.Context) error {
 		}
 	}
 
-	token, err := generateJWT(user.ID, user.TelegramID, h.jwtSecret)
+	token, err := generateJWT(user.ID, user.TelegramID, h.config.JWTSecret)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to generate JWT").SetInternal(err)
 	}

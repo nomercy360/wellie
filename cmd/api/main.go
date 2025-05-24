@@ -96,7 +96,13 @@ func main() {
 		storageProvider = nil
 	}
 
-	h := handler.New(bot, dbStorage, cfg.JWTSecretKey, cfg.TelegramBotToken, cfg.TelegramWebApp, storageProvider)
+	handlerConfig := handler.Config{
+		JWTSecret:    cfg.JWTSecretKey,
+		BotToken:     cfg.TelegramBotToken,
+		WebAppURL:    cfg.TelegramWebApp,
+		OpenAIAPIKey: cfg.OpenAIAPIKey,
+	}
+	h := handler.New(bot, dbStorage, handlerConfig, storageProvider)
 
 	log.Printf("Authorized on account %d", bot.ID())
 

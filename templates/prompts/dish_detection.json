@@ -1,0 +1,266 @@
+{
+  "model": "gpt-4.1-mini",
+  "input": [
+    {
+      "role": "system",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "You are an expert food analyst. Analyze the provided image of a meal. Your goal is to identify all edible items, estimate their quantities, and classify them for downstream nutritional analysis. For any drinks present, carefully consider their possible composition, including whether they contain sweeteners, added sugar, or are unsweetened, and specify this in your output if detectable. Do not detect any no edible items like glasses, cups, empty plates. Do not try to detect supplements or any other items not providing energy. Provide the output in JSON format.\nImage Quality Considerations:\n\nAssume standard portion sizes unless visually contradicted.\nIf scale references (e.g., a hand, a common utensil, a coin if user provides it) are visible, try to use them. (User note: providing a common scale item in the photo next to the food dramatically improves quantity estimation).\nNote any significant obstructions, blurriness, or poor lighting that might affect accuracy."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_image",
+          "image_url": "{{imageURL}}"
+        }
+      ]
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "dish_detection",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "required": [
+          "detected_dishes",
+          "overall_confidence",
+          "unidentifiable_items",
+          "image_assessment"
+        ],
+        "properties": {
+          "detected_dishes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "dish_name",
+                "ingredients",
+                "preparation_method_guess",
+                "potential_hidden_ingredients"
+              ],
+              "properties": {
+                "dish_name": {
+                  "type": "object",
+                  "required": [
+                    "value",
+                    "alternatives",
+                    "confidence"
+                  ],
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "description": "The name of the dish."
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "description": "Confidence score of the dish recognition."
+                    },
+                    "alternatives": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Alternative names for the dish."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "ingredients": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "quantity_estimation",
+                      "state",
+                      "type",
+                      "confidence"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Name of the ingredient."
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "Type of the ingredient",
+                        "enum": [
+                          "meat",
+                          "seafood",
+                          "vegetable",
+                          "fruit",
+                          "grain",
+                          "legume",
+                          "dairy",
+                          "herb",
+                          "spice",
+                          "nut",
+                          "seed",
+                          "sauce",
+                          "condiment",
+                          "beverage",
+                          "dessert",
+                          "oil",
+                          "water",
+                          "sweetener",
+                          "additive"
+                        ]
+                      },
+                      "state": {
+                        "type": "string",
+                        "description": "State of the ingredient (e.g., fresh, cooked).",
+                        "enum": [
+                          "raw",
+                          "fresh",
+                          "cooked",
+                          "baked",
+                          "fried",
+                          "boiled",
+                          "grilled",
+                          "roasted",
+                          "steamed",
+                          "toasted",
+                          "breaded",
+                          "chopped",
+                          "sliced",
+                          "diced",
+                          "minced",
+                          "whole",
+                          "pickled",
+                          "fermented",
+                          "preserved",
+                          "frozen",
+                          "cold",
+                          "hot",
+                          "smooth",
+                          "spread",
+                          "solid",
+                          "liquid"
+                        ]
+                      },
+                      "confidence": {
+                        "type": "number",
+                        "description": "Confidence score for the ingredient identification."
+                      },
+                      "quantity_estimation": {
+                        "type": "object",
+                        "required": [
+                          "value",
+                          "unit",
+                          "estimation_basis"
+                        ],
+                        "properties": {
+                          "unit": {
+                            "type": "string",
+                            "description": "Unit of measurement for the quantity.",
+                            "enum": [
+                              "piece",
+                              "slice",
+                              "cup",
+                              "tablespoon",
+                              "teaspoon",
+                              "fluid ounce",
+                              "gram",
+                              "milliliter",
+                              "oz"
+                            ]
+                          },
+                          "value": {
+                            "type": "number",
+                            "description": "Estimated quantity of the ingredient."
+                          },
+                          "estimation_basis": {
+                            "type": "string",
+                            "description": "Basis for the quantity estimation."
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "description": "List of ingredients in the detected dish."
+                },
+                "preparation_method_guess": {
+                  "type": "string",
+                  "description": "Guessed method of preparation for the dish."
+                },
+                "potential_hidden_ingredients": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "List of potential hidden ingredients."
+                }
+              },
+              "additionalProperties": false
+            },
+            "description": "A list of dishes detected in the image."
+          },
+          "image_assessment": {
+            "type": "object",
+            "required": [
+              "clarity",
+              "lighting",
+              "obstructions"
+            ],
+            "properties": {
+              "clarity": {
+                "type": "string",
+                "description": "Assessment of image clarity.",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              "lighting": {
+                "type": "string",
+                "description": "Assessment of image lighting.",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              "obstructions": {
+                "type": "string",
+                "description": "Assessment of any obstructions in the image.",
+                "enum": [
+                  "none",
+                  "partial",
+                  "significant"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "overall_confidence": {
+            "type": "number",
+            "description": "Overall confidence score for the dish detection."
+          },
+          "unidentifiable_items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Items in the image that could not be identified."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "reasoning": {},
+  "tools": [],
+  "temperature": 1,
+  "max_output_tokens": 2048,
+  "top_p": 1,
+  "store": true
+}
