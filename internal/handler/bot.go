@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	telegram "github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 	"github.com/labstack/echo/v4"
@@ -22,7 +21,7 @@ import (
 )
 
 func (h *Handler) HandleWebhook(c echo.Context) error {
-	var update tgbotapi.Update
+	var update models.Update
 	if err := c.Bind(&update); err != nil {
 		log.Printf("Failed to bind update: %v", err)
 		return c.NoContent(400)
@@ -42,13 +41,13 @@ func (h *Handler) HandleWebhook(c echo.Context) error {
 	return c.NoContent(200)
 }
 
-func (h *Handler) handleUpdate(update tgbotapi.Update) (msg *telegram.SendMessageParams) {
+func (h *Handler) handleUpdate(update models.Update) (msg *telegram.SendMessageParams) {
 	var chatID int64
 	var name *string
 	var username *string
 	if update.Message != nil {
 		chatID = update.Message.From.ID
-		username = &update.Message.From.UserName
+		username = &update.Message.From.Username
 
 		name = &update.Message.From.FirstName
 		if update.Message.From.FirstName != "" {
@@ -116,8 +115,9 @@ func (h *Handler) handleUpdate(update tgbotapi.Update) (msg *telegram.SendMessag
 		return msg
 	}
 
-	if update.Message.IsCommand() {
-		switch update.Message.Command() {
+	if update.Message.Text != "" && update.Message.Text[0] == '/' {
+		command := strings.Split(strings.TrimSpace(update.Message.Text[1:]), " ")[0]
+		switch command {
 		case "start":
 			msg.Text = "Привет\\!"
 			msg.ParseMode = models.ParseModeMarkdown
@@ -158,7 +158,7 @@ func (h *Handler) handleUpdate(update tgbotapi.Update) (msg *telegram.SendMessag
 	return msg
 }
 
-func (h *Handler) processPhotoMessage(update tgbotapi.Update, user *db.User) *telegram.SendMessageParams {
+func (h *Handler) processPhotoMessage(update models.Update, user *db.User) *telegram.SendMessageParams {
 	ctx := context.Background()
 	chatID := update.Message.From.ID
 
@@ -216,7 +216,7 @@ func (h *Handler) processPhotoMessage(update tgbotapi.Update, user *db.User) *te
 	return nil
 }
 
-func (h *Handler) processFoodImage(ctx context.Context, update tgbotapi.Update, user *db.User, analyzingMessageID int) error {
+func (h *Handler) processFoodImage(ctx context.Context, update models.Update, user *db.User, analyzingMessageID int) error {
 	chatID := update.Message.From.ID
 
 	// Get the highest resolution photo
@@ -344,4 +344,86 @@ func formatFoodNames(names []string) string {
 		return names[0] + " and " + names[1]
 	}
 	return names[0] + ", " + names[1] + fmt.Sprintf(" and %d more", len(names)-2)
+}
+
+func (h *Handler) fetchAndUploadUserAvatar(ctx context.Context, userID int64) (*string, error) {
+	photos, err := h.bot.GetUserProfilePhotos(ctx, &telegram.GetUserProfilePhotosParams{
+		UserID: userID,
+		Limit:  1,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user profile photos: %w", err)
+	}
+
+	if photos.TotalCount == 0 || len(photos.Photos) == 0 || len(photos.Photos[0]) == 0 {
+		return nil, fmt.Errorf("no profile photos found")
+	}
+
+	// Get the largest photo
+	var largestPhoto *models.PhotoSize
+	maxSize := 0
+	for _, photo := range photos.Photos[0] {
+		size := photo.Width * photo.Height
+		if size > maxSize {
+			maxSize = size
+			largestPhoto = &photo
+		}
+	}
+
+	if largestPhoto == nil {
+		return nil, fmt.Errorf("no suitable photo found")
+	}
+
+	// Get file info
+	file, err := h.bot.GetFile(ctx, &telegram.GetFileParams{
+		FileID: largestPhoto.FileID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get file: %w", err)
+	}
+
+	// Download the file
+	fileURL := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", h.config.BotToken, file.FilePath)
+	resp, err := http.Get(fileURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download file: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Read file content
+	fileData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file data: %w", err)
+	}
+
+	// Generate filename
+	fileName := fmt.Sprintf("avatars/telegram_%d.jpg", userID)
+
+	// Upload to S3
+	_, err = h.storageProvider.UploadFile(ctx, bytes.NewReader(fileData), fileName, "image/jpeg")
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload to S3: %w", err)
+	}
+
+	return &fileName, nil
+}
+
+func (h *Handler) setMenuButton(chatID int64) {
+	ctx := context.Background()
+
+	menu := telegram.SetChatMenuButtonParams{
+		ChatID: chatID,
+		MenuButton: models.MenuButtonWebApp{
+			Type:   "web_app",
+			Text:   "Open App",
+			WebApp: models.WebAppInfo{URL: h.config.WebAppURL},
+		},
+	}
+
+	if _, err := h.bot.SetChatMenuButton(ctx, &menu); err != nil {
+		fmt.Printf("failed to set menu button: %v\n", err)
+		return
+	}
+
+	fmt.Printf("menu button set successfully for chat %d\n", chatID)
 }
