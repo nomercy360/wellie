@@ -33,8 +33,10 @@ func (h *Handler) HandleWebhook(c echo.Context) error {
 	}
 
 	resp := h.handleUpdate(update)
-	if _, err := h.bot.SendMessage(context.Background(), resp); err != nil {
-		log.Printf("Failed to send message: %v", err)
+	if resp != nil {
+		if _, err := h.bot.SendMessage(context.Background(), resp); err != nil {
+			log.Printf("Failed to send message: %v", err)
+		}
 	}
 
 	return c.NoContent(200)
@@ -160,15 +162,31 @@ func (h *Handler) processPhotoMessage(update tgbotapi.Update, user *db.User) *te
 	ctx := context.Background()
 	chatID := update.Message.From.ID
 
-	msg := &telegram.SendMessageParams{
+	// Send analyzing message immediately
+	params := &telegram.SendMessageParams{
 		ChatID: chatID,
 		Text:   "🔍 Analyzing your food image... This may take a moment.",
 	}
 
-	// Process asynchronously
+	sentMsg, err := h.bot.SendMessage(ctx, params)
+
+	var analyzingMessageID int
+	if err == nil && sentMsg != nil {
+		analyzingMessageID = sentMsg.ID
+	}
+
 	go func() {
-		if err := h.processFoodImage(ctx, update, user); err != nil {
+		if err := h.processFoodImage(ctx, update, user, analyzingMessageID); err != nil {
 			log.Printf("Failed to process food image: %v", err)
+
+			// Delete the analyzing message before sending error
+			if analyzingMessageID != 0 {
+				del := &telegram.DeleteMessageParams{
+					ChatID:    chatID,
+					MessageID: analyzingMessageID,
+				}
+				_, _ = h.bot.DeleteMessage(ctx, del)
+			}
 
 			// Provide user-friendly error messages
 			errorMessage := "❌ Sorry, I couldn't analyze your food image."
@@ -185,17 +203,20 @@ func (h *Handler) processPhotoMessage(update tgbotapi.Update, user *db.User) *te
 				errorMessage += " Please try again later."
 			}
 
-			_, _ = h.bot.SendMessage(ctx, &telegram.SendMessageParams{
+			params = &telegram.SendMessageParams{
 				ChatID: chatID,
 				Text:   errorMessage,
-			})
+			}
+
+			_, _ = h.bot.SendMessage(ctx, params)
 		}
 	}()
 
-	return msg
+	// Return nil since we already sent the message
+	return nil
 }
 
-func (h *Handler) processFoodImage(ctx context.Context, update tgbotapi.Update, user *db.User) error {
+func (h *Handler) processFoodImage(ctx context.Context, update tgbotapi.Update, user *db.User, analyzingMessageID int) error {
 	chatID := update.Message.From.ID
 
 	// Get the highest resolution photo
@@ -266,26 +287,29 @@ func (h *Handler) processFoodImage(ctx context.Context, update tgbotapi.Update, 
 		return fmt.Errorf("failed to process food image: %w", err)
 	}
 
+	if analyzingMessageID != 0 {
+		del := &telegram.DeleteMessageParams{
+			ChatID:    chatID,
+			MessageID: analyzingMessageID,
+		}
+		_, _ = h.bot.DeleteMessage(ctx, del)
+	}
+
 	// Send result message
 	resultMessage := fmt.Sprintf(`✅ Food analysis complete!
 
-🍽 Detected: %s
+🍽 %s
 
 📊 Nutritional Information:
 • Calories: %.0f kcal
 • Protein: %.1f g
 • Carbs: %.1f g
-• Fat: %.1f g
-
-✨ Confidence: %.0f%%
-
-Your food has been logged successfully!`,
+• Fat: %.1f g`,
 		formatFoodNames(result.FoodNames),
 		result.TotalCalories,
 		result.TotalProteins,
 		result.TotalCarbs,
-		result.TotalFats,
-		result.Confidence*100)
+		result.TotalFats)
 
 	_, err = h.bot.SendMessage(ctx, &telegram.SendMessageParams{
 		ChatID: chatID,
