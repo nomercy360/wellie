@@ -85,7 +85,10 @@ func (h *Handler) handleUpdate(update models.Update) (msg *telegram.SendMessageP
 			log.Printf("Failed to save user: %v", err)
 			msg.Text = "Ошибка при регистрации пользователя. Попробуй позже."
 		} else {
+			h.setMenuButton(chatID)
 			msg.Text = "Добро пожаловать! Используй /start для начала работы с ботом."
+
+			go h.uploadUserAvatarAsync(chatID)
 		}
 
 		user, err = h.db.GetUser(chatID)
@@ -96,19 +99,6 @@ func (h *Handler) handleUpdate(update models.Update) (msg *telegram.SendMessageP
 	} else if err != nil {
 		log.Printf("Failed to get user: %v", err)
 		msg.Text = "Ошибка при получении пользователя. Попробуй позже."
-	} else if user.AvatarURL == nil {
-		imgUrl := fmt.Sprintf("%s/avatars/%d.svg", "https://assets.peatch.io", rand.Intn(30)+1)
-
-		newUser := &db.User{
-			TelegramID: chatID,
-			Username:   username,
-			Name:       name,
-			AvatarURL:  &imgUrl,
-		}
-
-		if err := h.db.UpdateUser(newUser); err != nil {
-			log.Printf("Failed to update user: %v", err)
-		}
 	}
 
 	if update.Message == nil || user == nil {
@@ -119,13 +109,12 @@ func (h *Handler) handleUpdate(update models.Update) (msg *telegram.SendMessageP
 		command := strings.Split(strings.TrimSpace(update.Message.Text[1:]), " ")[0]
 		switch command {
 		case "start":
-			// Send photo with caption instead of just text
-			photoParams := &telegram.SendPhotoParams{
-				ChatID:    chatID,
-				Photo:     &models.InputFileString{Data: "https://assets.peatch.io/isometric-icon-A-delicious-layered--by-bnbicons.com.png"},
-				Caption:   "Привет\\! Я \\- *Вэлли\\-Вонка*, и ты только что попал на шоколадную фабрику здоровья\\.\n\nОтслеживай своё питание с помощью этого бота\\.\n\nОтправь мне фото еды, и я помогу тебе узнать её калорийность и состав\\. Также ты можешь воспользоваться приложением\\.",
-				ParseMode: models.ParseModeMarkdown,
-			}
+			// Set menu button for the user
+			h.setMenuButton(chatID)
+
+			// Send text message with inline keyboard
+			msg.Text = "Привет\\! Я \\- *Вэлли\\-Вонка*, и ты только что попал на шоколадную фабрику здоровья\\.\n\nОтслеживай своё питание с помощью этого бота\\.\n\nОтправь мне фото еды, и я помогу тебе узнать её калорийность и состав\\. Также ты можешь воспользоваться приложением\\."
+			msg.ParseMode = models.ParseModeMarkdown
 
 			webAppInfo := &models.WebAppInfo{
 				URL: h.config.WebAppURL,
@@ -140,19 +129,7 @@ func (h *Handler) handleUpdate(update models.Update) (msg *telegram.SendMessageP
 					},
 				},
 			}
-			photoParams.ReplyMarkup = replyMarkup
-
-			// Send photo message
-			if _, err := h.bot.SendPhoto(context.Background(), photoParams); err != nil {
-				log.Printf("Failed to send photo: %v", err)
-				// Fallback to text message if photo fails
-				msg.Text = "Привет\\! Я \\- *Вэлли\\-Вонка*, и ты только что попал на шоколадную фабрику здоровья\\.\n\nОтслеживай своё питание с помощью этого бота\\.\n\nОтправь мне фото еды, и я помогу тебе узнать её калорийность и состав\\. Также ты можешь воспользоваться приложением\\."
-				msg.ParseMode = models.ParseModeMarkdown
-				msg.ReplyMarkup = replyMarkup
-			} else {
-				// Return nil since we already sent the photo
-				return nil
-			}
+			msg.ReplyMarkup = replyMarkup
 		case "help":
 			msg.Text = "TODO: Справка по командам\\!"
 			msg.ParseMode = models.ParseModeMarkdown
@@ -366,6 +343,30 @@ func formatFoodNames(names []string) string {
 	return names[0] + ", " + names[1] + fmt.Sprintf(" and %d more", len(names)-2)
 }
 
+func (h *Handler) uploadUserAvatarAsync(userID int64) {
+	ctx := context.Background()
+
+	avatarURL, err := h.fetchAndUploadUserAvatar(ctx, userID)
+	if err != nil {
+		log.Printf("Failed to fetch and upload user avatar for user %d: %v", userID, err)
+		return
+	}
+
+	user, err := h.db.GetUser(userID)
+	if err != nil {
+		log.Printf("Failed to get user %d for avatar update: %v", userID, err)
+		return
+	}
+
+	user.AvatarURL = avatarURL
+
+	if err := h.db.UpdateUser(user); err != nil {
+		log.Printf("Failed to update user avatar for user %d: %v", userID, err)
+	} else {
+		log.Printf("Successfully uploaded avatar for user %d", userID)
+	}
+}
+
 func (h *Handler) fetchAndUploadUserAvatar(ctx context.Context, userID int64) (*string, error) {
 	photos, err := h.bot.GetUserProfilePhotos(ctx, &telegram.GetUserProfilePhotosParams{
 		UserID: userID,
@@ -420,12 +421,12 @@ func (h *Handler) fetchAndUploadUserAvatar(ctx context.Context, userID int64) (*
 	fileName := fmt.Sprintf("avatars/telegram_%d.jpg", userID)
 
 	// Upload to S3
-	_, err = h.storageProvider.UploadFile(ctx, bytes.NewReader(fileData), fileName, "image/jpeg")
+	s3URL, err := h.storageProvider.UploadFile(ctx, bytes.NewReader(fileData), fileName, "image/jpeg")
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload to S3: %w", err)
 	}
 
-	return &fileName, nil
+	return &s3URL, nil
 }
 
 func (h *Handler) setMenuButton(chatID int64) {
