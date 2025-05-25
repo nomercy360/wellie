@@ -119,8 +119,22 @@ func (h *Handler) handleUpdate(update models.Update) (msg *telegram.SendMessageP
 		command := strings.Split(strings.TrimSpace(update.Message.Text[1:]), " ")[0]
 		switch command {
 		case "start":
-			msg.Text = "Привет\\!"
+			msg.Text = "Привет\\! Я - *Вэлли-Вонка*, и ты только что попал на шоколадную фабрику здоровья\\.\n\nОтслеживай своё питание с помощью этого бота\\.\n\nОтправь мне фото еды, и я помогу тебе узнать её калорийность и состав\\. Также ты можешь воспользоваться приложением\\."
 			msg.ParseMode = models.ParseModeMarkdown
+			webAppInfo := &models.WebAppInfo{
+				URL: h.config.WebAppURL,
+			}
+			replyMarkup := &models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{
+					{
+						{
+							Text:   "Открыть в приложении",
+							WebApp: webAppInfo,
+						},
+					},
+				},
+			}
+			msg.ReplyMarkup = replyMarkup
 		case "help":
 			msg.Text = "TODO: Справка по командам\\!"
 			msg.ParseMode = models.ParseModeMarkdown
