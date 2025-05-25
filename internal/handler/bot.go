@@ -119,8 +119,14 @@ func (h *Handler) handleUpdate(update models.Update) (msg *telegram.SendMessageP
 		command := strings.Split(strings.TrimSpace(update.Message.Text[1:]), " ")[0]
 		switch command {
 		case "start":
-			msg.Text = "Привет\\! Я - *Вэлли-Вонка*, и ты только что попал на шоколадную фабрику здоровья\\.\n\nОтслеживай своё питание с помощью этого бота\\.\n\nОтправь мне фото еды, и я помогу тебе узнать её калорийность и состав\\. Также ты можешь воспользоваться приложением\\."
-			msg.ParseMode = models.ParseModeMarkdown
+			// Send photo with caption instead of just text
+			photoParams := &telegram.SendPhotoParams{
+				ChatID:    chatID,
+				Photo:     &models.InputFileString{Data: "https://assets.peatch.io/isometric-icon-A-delicious-layered--by-bnbicons.com.png"},
+				Caption:   "Привет\\! Я \\- *Вэлли\\-Вонка*, и ты только что попал на шоколадную фабрику здоровья\\.\n\nОтслеживай своё питание с помощью этого бота\\.\n\nОтправь мне фото еды, и я помогу тебе узнать её калорийность и состав\\. Также ты можешь воспользоваться приложением\\.",
+				ParseMode: models.ParseModeMarkdown,
+			}
+
 			webAppInfo := &models.WebAppInfo{
 				URL: h.config.WebAppURL,
 			}
@@ -134,7 +140,19 @@ func (h *Handler) handleUpdate(update models.Update) (msg *telegram.SendMessageP
 					},
 				},
 			}
-			msg.ReplyMarkup = replyMarkup
+			photoParams.ReplyMarkup = replyMarkup
+
+			// Send photo message
+			if _, err := h.bot.SendPhoto(context.Background(), photoParams); err != nil {
+				log.Printf("Failed to send photo: %v", err)
+				// Fallback to text message if photo fails
+				msg.Text = "Привет\\! Я \\- *Вэлли\\-Вонка*, и ты только что попал на шоколадную фабрику здоровья\\.\n\nОтслеживай своё питание с помощью этого бота\\.\n\nОтправь мне фото еды, и я помогу тебе узнать её калорийность и состав\\. Также ты можешь воспользоваться приложением\\."
+				msg.ParseMode = models.ParseModeMarkdown
+				msg.ReplyMarkup = replyMarkup
+			} else {
+				// Return nil since we already sent the photo
+				return nil
+			}
 		case "help":
 			msg.Text = "TODO: Справка по командам\\!"
 			msg.ParseMode = models.ParseModeMarkdown
@@ -202,20 +220,8 @@ func (h *Handler) processPhotoMessage(update models.Update, user *db.User) *tele
 				_, _ = h.bot.DeleteMessage(ctx, del)
 			}
 
-			// Provide user-friendly error messages
-			errorMessage := "❌ Sorry, I couldn't analyze your food image."
-
-			if err.Error() == "AI service is not configured" {
-				errorMessage += " The AI service is temporarily unavailable."
-			} else if err.Error() == "no photo found" {
-				errorMessage += " Please send a photo."
-			} else if strings.Contains(err.Error(), "failed to upload to storage") {
-				errorMessage += " There was an issue saving your image."
-			} else if strings.Contains(err.Error(), "failed to detect dishes") || strings.Contains(err.Error(), "failed to analyze nutrition") {
-				errorMessage += " Please try with a clearer photo of the food."
-			} else {
-				errorMessage += " Please try again later."
-			}
+			// Get user-friendly error message
+			errorMessage := GetUserFriendlyMessage(err)
 
 			params = &telegram.SendMessageParams{
 				ChatID: chatID,
@@ -236,7 +242,7 @@ func (h *Handler) processFoodImage(ctx context.Context, update models.Update, us
 	// Get the highest resolution photo
 	photos := update.Message.Photo
 	if len(photos) == 0 {
-		return fmt.Errorf("no photo found")
+		return ErrNoPhotoFound
 	}
 
 	photo := photos[len(photos)-1]
@@ -281,7 +287,7 @@ func (h *Handler) processFoodImage(ctx context.Context, update models.Update, us
 	filename := fmt.Sprintf("food-images/%s-%s.jpg", nanoid.Must(), time.Now().Format("20060102"))
 	s3URL, err := h.storageProvider.UploadFile(ctx, bytes.NewReader(imageData), filename, "image/jpeg")
 	if err != nil {
-		return fmt.Errorf("failed to upload to storage: %w", err)
+		return newProcessingError(ErrStorageUploadFailed, "failed to upload to storage", err)
 	}
 
 	// Load prompt templates

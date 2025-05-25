@@ -44,13 +44,13 @@ func (h *Handler) processFoodImageCommon(
 ) (*FoodProcessingResult, error) {
 	// Check if AI service is available
 	if h.aiService == nil {
-		return nil, fmt.Errorf("AI service is not configured")
+		return nil, ErrAIServiceNotConfigured
 	}
 
 	// Detect dishes
 	dishDetection, err := h.aiService.DetectDish(ctx, imageURL, dishDetectionPrompt)
 	if err != nil {
-		return nil, fmt.Errorf("failed to analyze image: %w", err)
+		return nil, newProcessingError(ErrDishDetectionFailed, "failed to analyze image", err)
 	}
 
 	// Process detected dishes
