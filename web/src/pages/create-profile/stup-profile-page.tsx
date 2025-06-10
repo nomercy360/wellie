@@ -51,7 +51,7 @@ export default function SetupProfilePage() {
 
 
 
-//переписать 
+  //переписать 
   const onContinue = async () => {
     if (step() === 1) {
       setStep(2)
@@ -151,7 +151,13 @@ export default function SetupProfilePage() {
                   <h1 class="text-2xl font-bold">{title()}</h1>
                   <p class="text-sm text-gray-500">{description()}</p>
                   <div class="text-sm text-gray-500">Step {index + 1}</div>
-               
+
+
+                  <textarea
+                    class="mt-12 h-full w-full resize-none bg-transparent px-4 text-center text-2xl placeholder:text-gray-400 focus:border-0 focus:outline-none focus:ring-0"
+                    autofocus={true}
+                    placeholder="Enter your age"
+                  />
                 </div>
               </Motion.div>
             </Show>
@@ -162,4 +168,4 @@ export default function SetupProfilePage() {
   )
 }
 
-// сделать кастомный по сути хук, который будет содержать в себе логику для всех этапов.  ы
+// сделать кастомный хук, который будет содержать в себе логику для всех этапов.

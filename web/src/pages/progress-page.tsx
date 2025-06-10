@@ -126,9 +126,9 @@ export default function ProgressPage() {
 						transition={{ duration: 0.4 }}
 					>
 						{/* Content Bottom*/}
-						<div class="grid grid-cols-2 justify-items-center gap-2 px-3 h-full w-full bg-white">
+						<div class="grid grid-cols-2 h-screen justify-items-center gap-2 px-3  bg-white">
 							{testArrayItems.map((item) => (
-								<div class="flex flex-row items-center justify-center h-[204px] w-[204px] rounded-[20px] bg-[#EEF9FF]">
+								<div class="flex flex-row items-center justify-center h-full w-full rounded-[20px] bg-[#EEF9FF]">
 									<h1>
 										{item}
 									</h1>
@@ -145,14 +145,12 @@ export default function ProgressPage() {
 						transition={{ duration: 0.5 }}
 					>
 						{/* Content Bottom*/}
-						<div class="grid grid-cols-2 justify-items-center gap-2 px-3 h-full w-full bg-white">
-							{testArrayItems.map((item) => (
-								<div class="flex flex-row items-center justify-center h-[204px] w-[204px] rounded-[20px] bg-gray-100">
-									<h1>
-										{item}
-									</h1>
-								</div>
-							))}
+						<div class="h-screen justify-items-center gap-2 px-3 bg-white">
+							<div class="flex items-start justify-center h-full w-full rounded-[20px] bg-gray-100">
+								<h1>
+									test
+								</h1>
+							</div>
 						</div>
 					</Motion.div>
 				</Match>

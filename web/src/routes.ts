@@ -4,7 +4,7 @@ import AddPhysical from '~/pages/add-physical'
 import NavigationTabs from '~/components/navigation-tabs'
 import CookBook from '~/pages/cook-book'
 import FirstPage from '~/pages/first-page'
-import SetupProfilePage from './pages/stup-profile-page'
+import SetupProfilePage from './pages/create-profile/stup-profile-page'
 export const routes: RouteDefinition[] = [
     {
         'path': '/',

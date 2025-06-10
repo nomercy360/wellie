@@ -23,8 +23,11 @@ export default function CookBook() {
                     />
                 </Link>
             </div>
-            <div class="flex flex-col items-center justify-center h-screen">
-                <h1>Cook Book</h1>
+            <h1 class="text-md font-bold">Cookbook</h1>
+            <div class="flex flex-col items-center w-[300px] gap-2 justify-center text-center h-screen">
+                <h1 class="text-2xl w-[200px] font-bold">Recepies are coming soon</h1>
+                <p class="text-sm text-[#7A8CA1]">You are keeping your calories in deficit. Keep going and you’ll achieve your goal.</p>
+                <button class="bg-[#F8F9FA] text-[#051F44] text-sm font-bold px-4 mt-4 py-2 rounded-[16px]">Notify me</button>
             </div>
         </div>
     )
