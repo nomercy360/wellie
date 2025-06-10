@@ -145,7 +145,7 @@ export default function ProgressPage() {
 						transition={{ duration: 0.5 }}
 					>
 						{/* Content Bottom*/}
-						<div class="h-screen justify-items-center gap-2 px-3 bg-white">
+						<div class="h-screen justify-items-center gap-2 px-2 bg-white">
 							<div class="flex items-start justify-center h-full w-full rounded-[20px] bg-gray-100">
 								<h1>
 									test

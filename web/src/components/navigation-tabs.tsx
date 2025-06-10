@@ -36,7 +36,10 @@ export default function NavigationTabs(props: any) {
             transition={{ duration: 1 }}
         >
             <div
-                class="flex flex-col items-center justify-start h-[85px] fixed bottom-0 w-full z-50"
+                class="flex flex-col items-center justify-start h-[85px] fixed bottom-0 w-full"
+                style={{
+                    "z-index": 999,
+                }}
             >
                 <div class="flex justify-center items-center flex-row rounded-full space-x-4 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.3)] bg-white px-2 h-[45px]">
                     {tabs.map(({ href, icon }) => (
