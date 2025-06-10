@@ -126,7 +126,7 @@ export default function ProgressPage() {
 						transition={{ duration: 0.4 }}
 					>
 						{/* Content Bottom*/}
-						<div class="grid grid-cols-2 h-screen justify-items-center gap-2 px-3  bg-white">
+						<div class="grid grid-cols-2 h-screen justify-items-center gap-2 px-2  bg-white">
 							{testArrayItems.map((item) => (
 								<div class="flex flex-row items-center justify-center h-full w-full rounded-[20px] bg-[#EEF9FF]">
 									<h1>
