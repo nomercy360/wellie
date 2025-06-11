@@ -21,7 +21,7 @@ const CardItem = (props: {
   };
 
   const zIndex = () => {
-    return props.allExpanded ? props.index + 1 : 100 - props.index;
+    return props.allExpanded ? props.index + 1 : cardItems.length + props.index;
   };
 
   return (
@@ -30,7 +30,7 @@ const CardItem = (props: {
       class="absolute left-0 transition-all duration-150 ease-out cursor-pointer w-full"
       style={{
         bottom: `${bottomPosition()}px`,
-        "z-index": zIndex(),
+        "z-index": -zIndex(),
         height: "120px",
       }}
     >
