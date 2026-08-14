@@ -4,6 +4,10 @@ The browser client for Wellie: conversational goal setup, plan review, Today,
 camera-assisted workouts, meal photo recognition and corrections, check-ins,
 meal history, progress, measurements, and settings.
 
+The training plan is displayed as a persistent card queue. Today always shows
+the next card, completion advances the rotation, and days without a workout do
+not create overdue sessions.
+
 There is no login. On first load, the app creates a random browser device ID,
 opens a backend session, and saves both values in `localStorage`. Clearing site
 data creates a new identity. Product records remain in the existing Wellie

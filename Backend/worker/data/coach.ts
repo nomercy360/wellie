@@ -377,11 +377,12 @@ type Plan = {
   weeklyRateKg: number | null;
   sessions: Array<{
     id: string;
-    dayOfWeek: number;
+    queueLabel: string;
+    dayOfWeek?: number;
     title: string;
     focus: string;
     durationMin: number;
-    startMinute: number | null;
+    startMinute?: number | null;
     exercises: Array<{ name: string; sets: number; reps: string; load: string }>;
   }>;
   meals: Array<{ id: string; name: string; timeLabel: string; kcal: number }>;
@@ -389,7 +390,16 @@ type Plan = {
 };
 
 function planFromRow(row: { payload: string; status: Plan["status"] }) {
-  return { ...(JSON.parse(row.payload) as Plan), status: row.status };
+  const plan = JSON.parse(row.payload) as Plan;
+  const fallbackLabels = ["Legs", "Push", "Pull", "Legs"];
+  return {
+    ...plan,
+    status: row.status,
+    sessions: plan.sessions.map((session, index) => ({
+      ...session,
+      queueLabel: session.queueLabel || fallbackLabels[index % fallbackLabels.length],
+    })),
+  };
 }
 
 export async function currentCoachPlan(env: Env, accountId: string): Promise<Plan | null> {
@@ -402,25 +412,15 @@ export async function currentCoachPlan(env: Env, accountId: string): Promise<Pla
   return row ? planFromRow(row) : null;
 }
 
-function trainingDays(count: number) {
-  const choices: Record<number, number[]> = {
-    1: [3],
-    2: [2, 5],
-    3: [1, 3, 6],
-    4: [1, 2, 4, 6],
-    5: [1, 2, 4, 5, 7],
-  };
-  return choices[Math.max(1, Math.min(5, count))] || [1, 2, 3, 5, 6, 7].slice(0, count);
-}
-
-function exerciseWeeks(location: string | null, equipment: string[]) {
+function trainingDeck(location: string | null, equipment: string[]) {
   const loaded =
     location === "gym" || equipment.some((item) => /dumbbell|kettlebell|barbell/.test(item));
   const load = loaded ? "comfortable load · 3 reps in reserve" : "bodyweight · controlled";
   return [
     {
-      title: "Lower body + core",
-      focus: "Squat pattern and trunk control",
+      queueLabel: "Legs",
+      title: "Lower body strength",
+      focus: "Squat pattern, legs, and trunk control",
       exercises: [
         { name: loaded ? "Goblet squat" : "Bodyweight squat", sets: 3, reps: "8–10", load },
         { name: "Reverse lunge", sets: 2, reps: "8 / side", load },
@@ -428,20 +428,32 @@ function exerciseWeeks(location: string | null, equipment: string[]) {
       ],
     },
     {
-      title: "Upper body",
-      focus: "Push, pull, and shoulder control",
+      queueLabel: "Push",
+      title: "Push strength",
+      focus: "Chest, shoulders, and trunk control",
       exercises: [
         { name: loaded ? "Dumbbell floor press" : "Incline push-up", sets: 3, reps: "8–12", load },
-        { name: loaded ? "One-arm row" : "Backpack row", sets: 3, reps: "10 / side", load },
+        { name: loaded ? "Dumbbell shoulder press" : "Pike push-up", sets: 3, reps: "8–10", load },
         { name: "Side plank", sets: 2, reps: "25 sec / side", load: "bodyweight" },
       ],
     },
     {
-      title: "Full body",
-      focus: "Repeatable strength and conditioning",
+      queueLabel: "Pull",
+      title: "Pull + posterior chain",
+      focus: "Back, hips, and postural strength",
       exercises: [
+        { name: loaded ? "One-arm row" : "Backpack row", sets: 3, reps: "10 / side", load },
         { name: loaded ? "Romanian deadlift" : "Hip hinge", sets: 3, reps: "10", load },
-        { name: "Squat to press", sets: 3, reps: "8", load },
+        { name: "Bird dog", sets: 2, reps: "8 / side", load: "slow and controlled" },
+      ],
+    },
+    {
+      queueLabel: "Legs",
+      title: "Lower body conditioning",
+      focus: "Repeatable squat work and leg endurance",
+      exercises: [
+        { name: loaded ? "Goblet squat" : "Tempo squat", sets: 3, reps: "10", load },
+        { name: "Split squat", sets: 2, reps: "8 / side", load },
         { name: "Fast march", sets: 4, reps: "40 sec", load: "conversational pace" },
       ],
     },
@@ -461,8 +473,7 @@ export async function draftCoachPlan(env: Env, accountId: string): Promise<Plan>
   const isGain = goal.kind === "gain_weight_muscle";
   const kcalTarget = Math.max(1400, baseKcal + (isLoss ? -350 : isGain ? 220 : 0));
   const carbsG = Math.max(80, Math.round((kcalTarget - proteinG * 4 - fatG * 9) / 4));
-  const templates = exerciseWeeks(person.trainingLocation, person.equipment);
-  const days = trainingDays(count);
+  const templates = trainingDeck(person.trainingLocation, person.equipment);
   const now = Date.now();
   const versionRow = await env.DB.prepare(
     "SELECT COALESCE(MAX(version), 0) AS version FROM coach_plans WHERE account_id = ?",
@@ -474,24 +485,19 @@ export async function draftCoachPlan(env: Env, accountId: string): Promise<Plan>
     id,
     version: (versionRow?.version ?? 0) + 1,
     status: "draft",
-    headline: `${count} practical sessions a week, built around ${person.trainingLocation || "your week"}`,
+    headline: `A four-card rotation for about ${count} sessions a week`,
     rationale:
-      "Week one starts easy on purpose so you can finish it even when work moves around. I’ll adjust the volume from completed sessions, meals, sleep and check-ins—not from an imaginary perfect week.",
+      "The deck advances only when you finish a session. Skip a day and nothing becomes overdue—the next card simply waits for you.",
     kcalTarget,
     proteinG,
     carbsG,
     fatG,
     weeklyRateKg: isLoss ? -0.35 : isGain ? 0.2 : null,
-    sessions: days.map((dayOfWeek, index) => {
-      const template = templates[index % templates.length];
-      return {
-        id: crypto.randomUUID(),
-        dayOfWeek,
-        durationMin: 35,
-        startMinute: 19 * 60,
-        ...template,
-      };
-    }),
+    sessions: templates.map((template) => ({
+      id: crypto.randomUUID(),
+      durationMin: 35,
+      ...template,
+    })),
     meals: [
       {
         id: crypto.randomUUID(),
@@ -538,7 +544,7 @@ export async function acceptCoachPlan(env: Env, accountId: string, planId: strin
       accountId,
     ),
   ]);
-  return { ...(JSON.parse(row.payload) as Plan), status: "active" as const };
+  return planFromRow({ payload: row.payload, status: "active" });
 }
 
 function mealFromRow(row: {
@@ -800,6 +806,30 @@ function goalTarget(goal: Goal | null, baseline: number | null) {
   return baseline + (goal.kind === "gain_weight_muscle" ? 1 : -1) * Math.abs(goal.targetValue);
 }
 
+export function queuedSession<T>(sessions: T[], completedCount: number) {
+  const safeCount = Math.max(0, Math.floor(completedCount));
+  const queueIndex = sessions.length ? safeCount % sessions.length : null;
+  return {
+    completedCount: safeCount,
+    queueIndex,
+    sessionNumber: sessions.length ? safeCount + 1 : null,
+    session: queueIndex == null ? null : sessions[queueIndex],
+  };
+}
+
+async function completedQueueWorkoutCount(env: Env, accountId: string, plan: Plan) {
+  const sessionIds = plan.sessions.map((session) => session.id);
+  if (!sessionIds.length) return 0;
+  const placeholders = sessionIds.map(() => "?").join(", ");
+  const row = await env.DB.prepare(
+    `SELECT COUNT(*) AS count FROM coach_workouts
+     WHERE account_id = ? AND status = 'completed' AND plan_session_id IN (${placeholders})`,
+  )
+    .bind(accountId, ...sessionIds)
+    .first<{ count: number }>();
+  return row?.count ?? 0;
+}
+
 export async function todaySummary(env: Env, accountId: string, day: string, dayStart: number) {
   const person = await ensureCoachProfile(env, accountId);
   const [goal, plan, meals, checkIn] = await Promise.all([
@@ -808,18 +838,11 @@ export async function todaySummary(env: Env, accountId: string, day: string, day
     coachMeals(env, accountId, dayStart, dayStart + 86_400_000),
     checkInFor(env, accountId, day),
   ]);
-  const isoDay = new Date(dayStart).getDay() || 7;
-  const session =
+  const queue =
     plan?.status === "active"
-      ? (plan.sessions.find((item) => item.dayOfWeek === isoDay) ?? null)
-      : null;
-  const completed = session
-    ? await env.DB.prepare(
-        "SELECT id FROM coach_workouts WHERE account_id = ? AND plan_session_id = ? AND status = 'completed' LIMIT 1",
-      )
-        .bind(accountId, session.id)
-        .first()
-    : null;
+      ? queuedSession(plan.sessions, await completedQueueWorkoutCount(env, accountId, plan))
+      : queuedSession<Plan["sessions"][number]>([], 0);
+  const session = queue.session;
   const kcalConsumed = meals.reduce((sum, meal) => sum + meal.kcal, 0);
   const proteinConsumedG = meals.reduce((sum, meal) => sum + meal.proteinG, 0);
   const firstWeight = await env.DB.prepare(
@@ -844,14 +867,16 @@ export async function todaySummary(env: Env, accountId: string, day: string, day
     day,
     greeting:
       new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening",
-    headline: session ? `${session.title} is the anchor today.` : "A recovery day still counts.",
+    headline: session
+      ? `Next up is ${session.queueLabel.toLowerCase()}.`
+      : "Your next card will appear here.",
     cards: [
       {
         kind: "workout",
-        title: session?.title || "Recovery",
+        title: session?.title || "No active deck",
         subtitle: session
           ? `${session.durationMin} minutes · ${session.focus}`
-          : "Walk, reset, and leave some energy for the next session.",
+          : "Accept a plan to start your training rotation.",
         planSessionId: session?.id ?? null,
       },
       {
@@ -879,7 +904,12 @@ export async function todaySummary(env: Env, accountId: string, day: string, day
     proteinTargetG: plan?.proteinG || Math.round((person.weightKg || 70) * 1.8),
     proteinConsumedG: Math.round(proteinConsumedG),
     session,
-    sessionCompleted: Boolean(completed),
+    sessionNumber: queue.sessionNumber,
+    queueIndex: queue.queueIndex,
+    sessionQueue:
+      plan?.status === "active"
+        ? plan.sessions.map(({ id, queueLabel, title }) => ({ id, queueLabel, title }))
+        : [],
     checkInDone: Boolean(checkIn),
     goal,
     weightDeltaKg,
@@ -924,6 +954,7 @@ export async function coachProgress(env: Env, accountId: string) {
     Math.ceil((Date.now() - (goal?.createdAt || Date.now())) / 604_800_000),
   );
   const target = goalTarget(goal, baseline);
+  const queueCompleted = plan ? await completedQueueWorkoutCount(env, accountId, plan) : 0;
   return {
     weightSeries: weights.results,
     goalWeightKg: target,
@@ -935,8 +966,8 @@ export async function coachProgress(env: Env, accountId: string) {
     mealsLoggedFraction: null,
     kcalAdherenceFraction: null,
     proteinAdherenceFraction: null,
-    sessionsCompleted: workouts?.completed ?? 0,
-    sessionsPlanned: plan ? weeksElapsed * plan.sessions.length : 0,
+    sessionsCompleted: queueCompleted,
+    nextSessionNumber: plan ? queuedSession(plan.sessions, queueCompleted).sessionNumber : null,
     note:
       weights.results.length < 2
         ? "One more weight entry will turn this into a trend. Until then, completed sessions are the useful signal."
@@ -964,9 +995,21 @@ export async function startCoachWorkout(
   accountId: string,
   input: Record<string, unknown>,
 ) {
+  const requestedSessionId = typeof input.planSessionId === "string" ? input.planSessionId : null;
+  if (requestedSessionId) {
+    const plan = await currentCoachPlan(env, accountId);
+    if (plan?.status !== "active")
+      throw new HttpError(409, "Accept a plan before starting its next card.");
+    const next = queuedSession(
+      plan.sessions,
+      await completedQueueWorkoutCount(env, accountId, plan),
+    ).session;
+    if (!next || next.id !== requestedSessionId)
+      throw new HttpError(409, "That card is not next in your training queue.");
+  }
   const row = workout({
     id: crypto.randomUUID(),
-    planSessionId: typeof input.planSessionId === "string" ? input.planSessionId : null,
+    planSessionId: requestedSessionId,
     movement: typeof input.movement === "string" ? input.movement.slice(0, 160) : "Movement",
     targetReps: typeof input.targetReps === "number" ? Math.round(input.targetReps) : null,
     completedReps: 0,
@@ -1023,7 +1066,7 @@ export async function completeCoachWorkout(
     note:
       status === "abandoned"
         ? "You stopped where you stopped. The next session stays manageable."
-        : "That set is now part of the plan’s evidence. Nothing else changes yet.",
+        : "That card is complete. The next one is ready whenever you are.",
     goalProgressFraction: target ? Math.min(1, completedReps / target) : null,
     goalProgressDetail: target ? `${completedReps} of ${target} target reps completed.` : null,
   };

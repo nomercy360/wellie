@@ -55,6 +55,11 @@ DELETE /api/v1/corpus/consent  retroactively remove one device's corpus items
 DELETE /api/v1/account     erase the device's media, corpus provenance, and D1 data
 ```
 
+An accepted plan is an ordered training deck. `GET /api/v1/today` selects the
+next card from completed workouts, not the weekday; `POST /api/v1/workouts`
+only accepts the currently queued plan session. Skipped dates never advance the
+queue or create session debt.
+
 A recognition request is a photograph (`photoHash` + `mimeType` + `imageBase64`,
 together or not at all), the person's words (`said`), or both; a request with
 neither is a 400. `note` remains the photo-annotation field the refine and

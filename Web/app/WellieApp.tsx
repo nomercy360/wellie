@@ -226,7 +226,7 @@ function SamplePlanCard({ className }: { className?: string }) {
     <div className={cx("sample-card", className)}>
       <span>{t("samplePlan")}</span>
       <strong>{t("sampleGoal")}</strong>
-      <div className="mini-week">{t("sampleWeekdays").split(",").map((day, i) => <b key={`${day}-${i}`} className={[0, 2, 4].includes(i) ? "active" : ""}>{day}</b>)}</div>
+      <div className="mini-week">{t("sampleWeekdays").split(",").map((card, i) => <b key={`${card}-${i}`} className={i === 0 ? "active" : ""}>{card}</b>)}</div>
       <small>{t("samplePlanDetail")}</small>
     </div>
   );
@@ -314,14 +314,12 @@ function MacroStrip({ plan }: { plan: Plan }) {
   );
 }
 
-function SessionCard({ session, compact = false }: { session: PlanSession; compact?: boolean }) {
+function SessionCard({ session, position, compact = false }: { session: PlanSession; position: number; compact?: boolean }) {
   const { t } = useI18n();
-  const days = [t("monday"), t("tuesday"), t("wednesday"), t("thursday"), t("friday"), t("saturday"), t("sunday")];
-  const time = session.startMinute == null ? null : `${String(Math.floor(session.startMinute / 60)).padStart(2, "0")}:${String(session.startMinute % 60).padStart(2, "0")}`;
   return (
     <article className={cx("session-card", compact && "compact")}>
-      <div className="session-day"><span>{days[session.dayOfWeek - 1]}</span><b>{session.durationMin} {t("minutesShort")}</b></div>
-      <div className="session-title"><div><h3>{session.title}</h3><p>{session.focus}{time ? ` · ${time}` : ""}</p></div><Dumbbell size={20} /></div>
+      <div className="session-day"><span>{t("queueCard", { number: position })} · {session.queueLabel}</span><b>{session.durationMin} {t("minutesShort")}</b></div>
+      <div className="session-title"><div><h3>{session.title}</h3><p>{session.focus}</p></div><Dumbbell size={20} /></div>
       {!compact && <div className="exercise-list">{session.exercises.map((exercise) => <div key={`${session.id}-${exercise.name}`}><span>{exercise.name}</span><b>{exercise.sets} × {exercise.reps} · {exercise.load}</b></div>)}</div>}
     </article>
   );
@@ -335,7 +333,7 @@ function PlanView({ plan, review, busy, onAccept, onBack }: { plan: Plan; review
       <PageHeader eyebrow={review ? t("planReady", { version: plan.version }) : t("yourPlan", { version: plan.version })} title={plan.headline} body={plan.rationale} onBack={onBack} />
       <MacroStrip plan={plan} />
       <div className="section-title"><div><span className="step-label">{t("training")}</span><h2>{t("yourWeek")}</h2></div><span>{t("sessionCount", { count: plan.sessions.length })}</span></div>
-      <div className="session-grid">{plan.sessions.map((session) => <SessionCard key={session.id} session={session} />)}</div>
+      <div className="session-grid">{plan.sessions.map((session, index) => <SessionCard key={session.id} session={session} position={index + 1} />)}</div>
       {plan.meals.length > 0 && <>
         <div className="section-title"><div><span className="step-label">{t("nutrition")}</span><h2>{t("targetDay")}</h2></div></div>
         <div className="meal-plan-grid">{plan.meals.map((meal) => <div key={meal.id}><span>{meal.timeLabel}</span><strong>{meal.name}</strong><b>{meal.kcal} kcal</b></div>)}</div>
@@ -385,17 +383,23 @@ function NutritionBars({ today }: { today: Today }) {
 function TodayView({ today, adjustment, onOpen }: { today: Today; adjustment?: string | null; onOpen: (view: View) => void }) {
   const { dateLocale, t } = useI18n();
   const workout = today.cards.find((card) => card.kind === "workout");
+  const sessionQueue = today.sessionQueue || [];
   return (
     <main className="today-page">
       <header className="today-heading"><div><span className="eyebrow"><Orb size={18} /> {today.greeting}</span><h1>{today.headline}</h1></div><span className="date-chip">{new Date(`${today.day}T12:00:00`).toLocaleDateString(dateLocale, { weekday: "long", month: "short", day: "numeric" })}</span></header>
       {adjustment && <div className="coach-note" role="note" aria-label={t("coachAdjusted")}><Sparkles size={17} /> <span>{adjustment}</span></div>}
+      {sessionQueue.length > 0 && <section className="rotation-panel" aria-label={t("yourRotation")}>
+        <div><span>{t("yourRotation")}</span><b>{t("sessionNumber", { number: today.sessionNumber || 1 })}</b></div>
+        <ol>{sessionQueue.map((card, index) => <li key={card.id} className={index === today.queueIndex ? "active" : ""} aria-current={index === today.queueIndex ? "step" : undefined}><i />{card.queueLabel}</li>)}</ol>
+        <p>{t("queueWaits")}</p>
+      </section>}
       <section className="today-grid">
         <article className="hero-card workout-hero">
-          <div className="card-kicker"><Dumbbell size={16} /> {t("tonightTraining")}</div>
+          <div className="card-kicker"><Dumbbell size={16} /> {t("nextCard")}</div>
           {today.session ? <>
             <h2>{today.session.title}</h2><p>{today.session.focus}</p>
             <div className="workout-meta"><span>{today.session.durationMin} {t("minutesShort")}</span><span>{t("movementCount", { count: today.session.exercises.length })}</span></div>
-            <Button onClick={() => onOpen("workout")}>{today.sessionCompleted ? <><RotateCcw size={17} /> {t("repeatSession")}</> : <>{t("startSession")} <ChevronRight size={17} /></>}</Button>
+            <Button onClick={() => onOpen("workout")}>{t("startSession")} <ChevronRight size={17} /></Button>
           </> : <>
             <h2>{t("recoveryDay")}</h2><p>{workout?.subtitle || t("recoveryFallback")}</p>
             <Button onClick={() => onOpen("workout")}><Camera size={17} /> {t("freeSession")}</Button>
@@ -730,7 +734,7 @@ function ProgressView({ progress, busy, onLoad, onBack }: { progress: Progress |
       {busy && !progress ? <Spinner label={t("readingProgress")} /> : progress && <>
         <div className="metric-grid">
           <div><span>{t("weightChange")}</span><strong>{progress.weightDeltaKg == null ? "—" : `${progress.weightDeltaKg > 0 ? "+" : ""}${progress.weightDeltaKg.toFixed(1)} kg`}</strong><small>{progress.goalWeightKg == null ? t("noWeightGoal") : t("goalWeight", { value: progress.goalWeightKg })}</small></div>
-          <div><span>{t("sessions")}</span><strong>{progress.sessionsCompleted} / {progress.sessionsPlanned}</strong><small>{t("workoutsLogged", { count: progress.workoutCount })}</small></div>
+          <div><span>{t("sessions")}</span><strong>{progress.sessionsCompleted}</strong><small>{progress.nextSessionNumber ? t("nextSessionNumber", { number: progress.nextSessionNumber }) : t("workoutsLogged", { count: progress.workoutCount })}</small></div>
           <div><span>{t("proteinDays")}</span><strong>{progress.proteinAdherenceFraction == null ? "—" : `${Math.round(progress.proteinAdherenceFraction * 100)}%`}</strong><small>{t("loggedDaysTarget")}</small></div>
           <div><span>{t("weeksIn")}</span><strong>{progress.weeksElapsed}</strong><small>{progress.averageFormScore == null ? t("formNotMeasured") : t("averageForm", { value: progress.averageFormScore })}</small></div>
         </div>

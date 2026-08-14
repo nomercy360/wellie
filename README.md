@@ -1,7 +1,7 @@
 # Wellie
 
 Wellie is a browser-based training and nutrition coach. It turns a goal said or
-typed in natural language into a weekly plan, tracks completed workouts, reads
+typed in natural language into an ordered training rotation, tracks completed workouts, reads
 meal photos, accepts corrections, and builds progress from what was actually
 logged.
 
@@ -88,6 +88,11 @@ MediaPipe Pose Lite runs entirely in the browser. Camera frames and landmarks
 are not uploaded; only the final rep count and duration are saved. The official
 model and WASM runtime are served from `Web/public/` so workout counting does
 not depend on a CDN.
+
+Training is a queue rather than a calendar. The active plan is an ordered deck;
+completing a workout advances one card, while skipping a day leaves the same
+card next. Session numbers therefore measure progress without creating overdue
+workouts.
 
 ## Verify
 

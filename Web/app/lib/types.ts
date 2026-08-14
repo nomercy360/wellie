@@ -35,11 +35,12 @@ export type ChatMessage = {
 export type PlanExercise = { name: string; sets: number; reps: string; load: string };
 export type PlanSession = {
   id: string;
-  dayOfWeek: number;
+  queueLabel: string;
+  dayOfWeek?: number;
   title: string;
   focus: string;
   durationMin: number;
-  startMinute: number | null;
+  startMinute?: number | null;
   exercises: PlanExercise[];
 };
 export type Plan = {
@@ -99,7 +100,9 @@ export type Today = {
   proteinTargetG: number;
   proteinConsumedG: number;
   session: PlanSession | null;
-  sessionCompleted: boolean;
+  sessionNumber: number | null;
+  queueIndex: number | null;
+  sessionQueue: { id: string; queueLabel: string; title: string }[];
   checkInDone: boolean;
   goal: Goal | null;
   weightDeltaKg: number | null;
@@ -132,7 +135,7 @@ export type Progress = {
   kcalAdherenceFraction: number | null;
   proteinAdherenceFraction: number | null;
   sessionsCompleted: number;
-  sessionsPlanned: number;
+  nextSessionNumber: number | null;
   note: string;
 };
 

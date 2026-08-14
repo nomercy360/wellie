@@ -46,9 +46,9 @@ The claim is the synthesis and the explanation, not any single capability.
 - **The morning check-in is explicit** — the browser cannot read Apple Health,
   so the user enters only the measurements they actually have and says what
   yesterday was like.
-- **The calendar is a live constraint** in the product as described. Calendar
-  access is not built: the plan proposes a time for a session, and nothing reads
-  or writes the person's actual calendar yet.
+- **Training is an ordered queue, not a calendar.** The plan cycles through a
+  four-card legs → push → pull → legs deck. Completing a session advances the
+  queue; skipping a day leaves the same card next, so nothing becomes overdue.
 - Pain reports, persistence, and pain-driven plan changes are out of scope. The
   designed "it hurts / safe swap" screen is not built, so the app has no path
   that responds to pain — a real gap, not a deferred polish item.
@@ -62,6 +62,9 @@ Committed capabilities, all four confirmed as real rather than demo-only:
 - **Camera movement tracking** — MediaPipe Pose Lite runs in the browser and counts
   squats from a side, front, or oblique camera view. A form score and movements
   other than squats are not implemented, so no session carries a form score.
+- **Persistent session queue** — the next training card is available every day,
+  advances only after a completed workout, wraps indefinitely, and keeps a
+  lifetime session number rather than date-based adherence debt.
 - **Food photo → macros** — a plate photograph returns kcal and macros,
   correctable by speech. Built.
 - **Manual recovery data** — sleep, deep sleep, HRV, resting heart rate, steps,

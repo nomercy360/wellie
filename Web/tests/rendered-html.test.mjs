@@ -43,9 +43,11 @@ test("plan review has no non-functional regeneration action", async () => {
   assert.doesNotMatch(source, /onRegenerate|tryAnother/);
 });
 
-test("completed sessions remain repeatable for testing", async () => {
+test("the next queued session remains available for continuous testing", async () => {
   const source = await readFile(new URL("../app/WellieApp.tsx", import.meta.url), "utf8");
-  assert.match(source, /today\.sessionCompleted[\s\S]{0,120}repeatSession/);
+  assert.match(source, /today\.sessionQueue/);
+  assert.match(source, /today\.queueIndex/);
+  assert.match(source, /today\.sessionNumber/);
   assert.doesNotMatch(source, /disabled=\{today\.sessionCompleted\}/);
 });
 
