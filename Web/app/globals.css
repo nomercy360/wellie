@@ -90,12 +90,12 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
 .dots span.active { width: 24px; background: var(--green); }
 
 /* Conversation */
-.conversation-shell { min-height: 100dvh; padding: 0 clamp(20px, 4vw, 70px); display: flex; flex-direction: column; }
+.conversation-shell { height: 100dvh; overflow: hidden; padding: 0 clamp(20px, 4vw, 70px); display: flex; flex-direction: column; }
 .conversation-header { height: 76px; flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
 .conversation-header-actions { display: flex; align-items: center; gap: 12px; }
 .conversation-header-actions > span { color: var(--muted); font-size: 0.82rem; }
 .conversation-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(310px, 0.78fr) minmax(420px, 1.22fr); gap: clamp(30px, 7vw, 110px); }
-.conversation-aside { padding: clamp(50px, 8vh, 100px) 0 45px; }
+.conversation-aside { min-height: 0; overflow-y: auto; padding: clamp(50px, 8vh, 100px) 0 45px; }
 .conversation-aside h1 { margin-top: 17px; font-size: clamp(2.5rem, 4.4vw, 4.8rem); }
 .conversation-aside > p { margin-top: 24px; color: var(--muted); line-height: 1.66; max-width: 500px; }
 .sample-card { margin-top: 42px; max-width: 500px; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px; box-shadow: 0 18px 48px rgba(40, 48, 37, 0.05); }
@@ -329,7 +329,7 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
 }
 
 @media (max-width: 720px) {
-  body { padding-bottom: 68px; }
+  .app-shell { padding-bottom: 68px; }
   h1 { letter-spacing: -0.045em; }
   .intro-shell { padding: 15px 16px 22px; }
   .intro-top { height: 42px; }
@@ -344,8 +344,8 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
   .conversation-header { height: 61px; }
   .conversation-layout { display: flex; flex-direction: column; }
   .conversation-aside { display: none; }
-  .chat-panel { flex: 1; padding: 0 0 7px; }
-  .chat-scroll { padding-top: 16px; }
+  .chat-panel { flex: 1; min-height: 0; padding: 0 0 max(7px, env(safe-area-inset-bottom)); }
+  .chat-scroll { padding: 16px 0 12px; overscroll-behavior: contain; }
   .message > div { max-width: 85%; font-size: 0.92rem; }
   .privacy-note { font-size: 0.64rem; }
 

@@ -330,7 +330,10 @@ function TodayView({ today, onOpen }: { today: Today; onOpen: (view: View) => vo
             <h2>{today.session.title}</h2><p>{today.session.focus}</p>
             <div className="workout-meta"><span>{today.session.durationMin} {t("minutesShort")}</span><span>{t("movementCount", { count: today.session.exercises.length })}</span></div>
             <Button onClick={() => onOpen("workout")}>{today.sessionCompleted ? <><RotateCcw size={17} /> {t("repeatSession")}</> : <>{t("startSession")} <ChevronRight size={17} /></>}</Button>
-          </> : <><h2>{t("recoveryDay")}</h2><p>{workout?.subtitle || t("recoveryFallback")}</p></>}
+          </> : <>
+            <h2>{t("recoveryDay")}</h2><p>{workout?.subtitle || t("recoveryFallback")}</p>
+            <Button onClick={() => onOpen("workout")}><Camera size={17} /> {t("freeSession")}</Button>
+          </>}
         </article>
         <article className="hero-card nutrition-card">
           <div className="card-kicker"><Utensils size={16} /> {t("foodToday")}</div>
