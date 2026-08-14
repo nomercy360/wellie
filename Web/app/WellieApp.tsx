@@ -183,14 +183,14 @@ function Intro({ onFinish }: { onFinish: () => void }) {
   const [page, setPage] = useState(0);
   const pages = [
     {
-      image: "/media/training-home.jpg",
+      image: "/media/onboarding-training-v2.webp",
       alt: t("introTrainingAlt"),
       badge: t("introTrainingBadge"),
       title: <>{t("introTrainingTitle")}<br /><em>{t("introTrainingEmphasis")}</em></>,
       body: t("introTrainingBody"),
     },
     {
-      image: "/media/plate.jpg",
+      image: "/media/onboarding-meal-v2.webp",
       alt: t("introFoodAlt"),
       badge: t("introFoodBadge"),
       title: <>{t("introFoodTitle")}<br /><em>{t("introFoodEmphasis")}</em></>,
