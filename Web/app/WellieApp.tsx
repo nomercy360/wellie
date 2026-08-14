@@ -109,7 +109,7 @@ type SpeechRecognitionLike = {
 };
 
 function VoiceComposer({ placeholder, busy, detached = false, autoListen = false, onSend }: { placeholder: string; busy?: boolean; detached?: boolean; autoListen?: boolean; onSend: (value: string) => void | Promise<void> }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const [value, setValue] = useState("");
   const [listening, setListening] = useState(false);
   const recognition = useRef<SpeechRecognitionLike | null>(null);
@@ -136,7 +136,7 @@ function VoiceComposer({ placeholder, busy, detached = false, autoListen = false
     recognition.current = instance;
     instance.continuous = false;
     instance.interimResults = true;
-    instance.lang = navigator.language || "en-US";
+    instance.lang = locale === "ja" ? "ja-JP" : "en-US";
     instance.onresult = (event) => {
       const transcript = Array.from(event.results).map((result) => result[0].transcript).join("");
       setValue(transcript);
@@ -350,7 +350,7 @@ function NutritionRing({ consumed, target, label }: { consumed: number; target: 
   const { formatNumber, t } = useI18n();
   const percent = target ? Math.min(100, Math.round((consumed / target) * 100)) : 0;
   return (
-    <div className="nutrition-ring" style={{ background: `conic-gradient(var(--green) ${percent}%, var(--soft-green) 0)` }}>
+    <div className="nutrition-ring" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={target} aria-valuenow={Math.min(consumed, target)} style={{ background: `conic-gradient(var(--green) ${percent}%, var(--soft-green) 0)` }}>
       <div><strong>{formatNumber(consumed)}</strong><span>{t("ofTarget", { target: formatNumber(target), label })}</span></div>
     </div>
   );
@@ -368,14 +368,14 @@ function NutritionBars({ today }: { today: Today }) {
           <strong>{formatNumber(today.kcalConsumed)} <span>{t("kcalOf", { target: formatNumber(today.kcalTarget) })}</span></strong>
           <span className={kcalLeft >= 0 ? "accent" : ""}>{kcalLeft >= 0 ? t("kcalLeft", { value: formatNumber(kcalLeft) }) : t("kcalOver", { value: formatNumber(-kcalLeft) })}</span>
         </div>
-        <div className="progress-track"><i style={{ width: width(today.kcalConsumed, today.kcalTarget) }} /></div>
+        <div className="progress-track" role="progressbar" aria-label="kcal" aria-valuemin={0} aria-valuemax={today.kcalTarget} aria-valuenow={Math.min(today.kcalConsumed, today.kcalTarget)}><i style={{ width: width(today.kcalConsumed, today.kcalTarget) }} /></div>
       </div>
       <div>
         <div className="bar-head">
           <strong>{today.proteinConsumedG} <span>{t("proteinOf", { target: today.proteinTargetG })}</span></strong>
           <span>{proteinLeft > 0 ? t("proteinLeft", { value: proteinLeft }) : t("proteinDone")}</span>
         </div>
-        <div className="progress-track"><i style={{ width: width(today.proteinConsumedG, today.proteinTargetG) }} /></div>
+        <div className="progress-track" role="progressbar" aria-label={t("protein")} aria-valuemin={0} aria-valuemax={today.proteinTargetG} aria-valuenow={Math.min(today.proteinConsumedG, today.proteinTargetG)}><i style={{ width: width(today.proteinConsumedG, today.proteinTargetG) }} /></div>
       </div>
     </div>
   );
@@ -413,7 +413,7 @@ function TodayView({ today, adjustment, onOpen }: { today: Today; adjustment?: s
           </div>
           <div className="nutrition-layout">
             <NutritionRing consumed={today.kcalConsumed} target={today.kcalTarget} label="kcal" />
-            <div><strong>{today.proteinConsumedG} / {today.proteinTargetG}g</strong><span>{t("protein")}</span><div className="progress-track"><i style={{ width: `${Math.min(100, today.proteinTargetG ? today.proteinConsumedG / today.proteinTargetG * 100 : 0)}%` }} /></div></div>
+            <div><strong>{today.proteinConsumedG} / {today.proteinTargetG}g</strong><span>{t("protein")}</span><div className="progress-track" role="progressbar" aria-label={t("protein")} aria-valuemin={0} aria-valuemax={today.proteinTargetG} aria-valuenow={Math.min(today.proteinConsumedG, today.proteinTargetG)}><i style={{ width: `${Math.min(100, today.proteinTargetG ? today.proteinConsumedG / today.proteinTargetG * 100 : 0)}%` }} /></div></div>
           </div>
           <NutritionBars today={today} />
           <div className="card-actions"><Button onClick={() => onOpen("food")}><Camera size={17} /> {t("scanMeal")}</Button><Button kind="ghost" onClick={() => onOpen("meals")}>{t("viewLogged", { count: today.meals.length || "" })}</Button></div>
@@ -467,11 +467,11 @@ function CheckInView({ value, busy, onSubmit, onBack }: { value: CheckIn | null;
       </div> : <form className="checkin-form" onSubmit={submit}>
         <label className="wide">{t("yesterdayLike")}<textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("yesterdayPlaceholder")} /></label>
         <div className="field-grid">
-          <label>{t("sleepHours")}<input inputMode="decimal" value={reading.sleep} onChange={(e) => setReading({ ...reading, sleep: e.target.value })} placeholder="7.5" /></label>
-          <label>{t("deepSleepMin")}<input inputMode="numeric" value={reading.deep} onChange={(e) => setReading({ ...reading, deep: e.target.value })} placeholder="82" /></label>
-          <label>HRV, ms<input inputMode="decimal" value={reading.hrv} onChange={(e) => setReading({ ...reading, hrv: e.target.value })} placeholder="48" /></label>
-          <label>{t("restingHeartRate")}<input inputMode="decimal" value={reading.resting} onChange={(e) => setReading({ ...reading, resting: e.target.value })} placeholder="61" /></label>
-          <label>{t("yesterdaySteps")}<input inputMode="numeric" value={reading.steps} onChange={(e) => setReading({ ...reading, steps: e.target.value })} placeholder="8,200" /></label>
+          <label>{t("sleepHours")}<input type="number" inputMode="decimal" min="0" max="24" step="0.1" value={reading.sleep} onChange={(e) => setReading({ ...reading, sleep: e.target.value })} placeholder="7.5" /></label>
+          <label>{t("deepSleepMin")}<input type="number" inputMode="numeric" min="0" max="1440" step="1" value={reading.deep} onChange={(e) => setReading({ ...reading, deep: e.target.value })} placeholder="82" /></label>
+          <label>HRV, ms<input type="number" inputMode="decimal" min="1" max="300" step="0.1" value={reading.hrv} onChange={(e) => setReading({ ...reading, hrv: e.target.value })} placeholder="48" /></label>
+          <label>{t("restingHeartRate")}<input type="number" inputMode="decimal" min="20" max="250" step="1" value={reading.resting} onChange={(e) => setReading({ ...reading, resting: e.target.value })} placeholder="61" /></label>
+          <label>{t("yesterdaySteps")}<input type="number" inputMode="numeric" min="0" max="200000" step="1" value={reading.steps} onChange={(e) => setReading({ ...reading, steps: e.target.value })} placeholder="8200" /></label>
         </div>
         <Button disabled={busy || (!note.trim() && !Object.values(reading).some(Boolean))}>{busy ? <Spinner label={t("readingDay")} /> : <>{t("checkIn")} <ChevronRight size={17} /></>}</Button>
       </form>}
@@ -559,7 +559,7 @@ function FoodView({ today, onLogged, onBack }: { today: Today | null; onLogged: 
         </>}
         {logged && <div className="success-line"><Check size={17} /> {t("mealLogged")}</div>}
         {busy && <div className="model-wait"><Spinner label={logged ? t("correctingMeal") : t("readingPlate")} /><small>{t("modelWait")}</small></div>}
-        {error && <p className="error-line">{error}</p>}
+        {error && <p className="error-line" role="alert">{error}</p>}
       </div>
       <div className="food-actions">
         {dictating && !logged && <VoiceComposer placeholder={shown ? t("portionPlaceholder") : t("describeMeal")} busy={busy} autoListen onSend={(value) => { setSaid(value); return recognize(value); }} />}
@@ -674,7 +674,6 @@ function WorkoutView({ session, onFinished, onBack }: { session: PlanSession | n
   const start = async () => {
     setStatus("starting"); setError(null);
     try {
-      activeWorkout.current = await api.startWorkout({ planSessionId: session?.id || null, movement, targetReps: target });
       stream.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
       if (video.current) { video.current.srcObject = stream.current; await video.current.play(); }
       const vision = await import("@mediapipe/tasks-vision");
@@ -683,6 +682,7 @@ function WorkoutView({ session, onFinished, onBack }: { session: PlanSession | n
       const context = overlay.current?.getContext("2d");
       if (context) drawing.current = new vision.DrawingUtils(context) as unknown as PoseDrawingUtils;
       poseConnections.current = vision.PoseLandmarker.POSE_CONNECTIONS as PoseConnection[];
+      if (!activeWorkout.current) activeWorkout.current = await api.startWorkout({ planSessionId: session?.id || null, movement, targetReps: target });
       startedAt.current = Date.now(); setStatus("running"); processFrame();
     } catch (cause) {
       stopCamera(); setStatus("idle"); setError(cause instanceof Error ? cause.message : t("cameraStartError"));
@@ -697,7 +697,7 @@ function WorkoutView({ session, onFinished, onBack }: { session: PlanSession | n
     try {
       const result = await api.completeWorkout(activeWorkout.current.id, { completedReps: reps, durationSec: Math.max(1, Math.round((Date.now() - startedAt.current) / 1000)), formScore: null, abandoned: false });
       setSummary(result); setStatus("done"); await onFinished();
-    } catch (cause) { setStatus("running"); setError(cause instanceof Error ? cause.message : t("workoutFinishError")); }
+    } catch (cause) { setStatus("idle"); setError(cause instanceof Error ? cause.message : t("workoutFinishError")); }
   };
 
   if (summary) return <main className="content-page narrow"><PageHeader eyebrow={t("sessionComplete")} title={summary.headline} body={summary.note} onBack={onBack} /><div className="result-tiles"><div><strong>{summary.workout.completedReps}</strong><span>{t("reps")}</span></div><div><strong>{Math.max(1, Math.round((summary.workout.durationSec || 0) / 60))}</strong><span>{t("minutes")}</span></div></div>{summary.goalProgressDetail && <div className="adjustment"><Sparkles size={17} /> {summary.goalProgressDetail}</div>}<Button onClick={onBack}>{t("backToday")}</Button></main>;
@@ -714,7 +714,7 @@ function WorkoutView({ session, onFinished, onBack }: { session: PlanSession | n
           {error && <span className="camera-error">{error}</span>}
           {status === "idle" && <Button onClick={() => void start()}><Camera size={17} /> {t("startCamera")}</Button>}
         </div>}
-        {status === "running" && <div className="rep-counter"><span>{t("reps")}</span><strong>{reps}</strong><b>{t("target", { count: target })}</b></div>}
+        {status === "running" && <div className="rep-counter" role="status" aria-live="polite" aria-atomic="true"><span>{t("reps")}</span><strong>{reps}</strong><b>{t("target", { count: target })}</b></div>}
         {status === "running" && <Button className="camera-finish" onClick={() => void finish()}>{t("finishSet")} <Check size={17} /></Button>}
       </div>
     </main>
@@ -770,6 +770,14 @@ function SettingsView({ ping, onReset, onReconnect, onBack }: { ping: Ping | nul
 
 function AppChrome({ view, onView, children }: { view: View; onView: (view: View) => void; children: ReactNode }) {
   const { t } = useI18n();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    const heading = document.querySelector<HTMLElement>(".app-content main h1");
+    if (!heading) return;
+    heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
+    return () => heading.removeAttribute("tabindex");
+  }, [view]);
   const nav: Array<{ id: View; label: string; icon: typeof Home }> = [{ id: "today", label: t("today"), icon: Home }, { id: "plan", label: t("plan"), icon: Dumbbell }, { id: "progress", label: t("progress"), icon: BarChart3 }, { id: "meals", label: t("meals"), icon: Utensils }];
   const tab = (item: { id: View; label: string; icon: typeof Home }) => {
     const Icon = item.icon;
@@ -900,7 +908,7 @@ function WellieApplication() {
   if (stage === "review" && plan) return <PlanView plan={plan} review busy={busy} onAccept={() => void acceptPlan()} />;
   if (stage === "ready") return (
     <AppChrome view={view} onView={setView}>
-      {error && <div className="toast"><span>{error}</span><button onClick={() => setError(null)} aria-label={t("dismiss")}><X size={16} /></button></div>}
+      {error && <div className="toast" role="alert"><span>{error}</span><button onClick={() => setError(null)} aria-label={t("dismiss")}><X size={16} /></button></div>}
       {view === "today" && (today ? <TodayView today={today} adjustment={checkIn?.adjustment} onOpen={setView} /> : <main className="center-state"><Spinner label={t("assemblingToday")} /></main>)}
       {view === "plan" && plan && <PlanView plan={plan} onBack={() => setView("today")} busy={busy} />}
       {view === "checkin" && <CheckInView value={checkIn} busy={busy} onSubmit={submitCheckIn} onBack={() => setView("today")} />}

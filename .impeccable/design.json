@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-14T22:49:04Z",
+  "title": "Design System: Wellie",
+  "extensions": {
+    "colorMeta": {
+      "pea-green": { "role": "primary", "displayName": "Fresh Pea Green", "canonical": "#bddb50", "tonalRamp": ["#263209", "#3f5310", "#5d761b", "#7e9a29", "#9fbd3a", "#bddb50", "#d7ed8a", "#eff8cc"] },
+      "forest-green": { "role": "primary", "displayName": "Forest Ink", "canonical": "#416313", "tonalRamp": ["#172406", "#263a0b", "#365110", "#4b6d19", "#678b27", "#8daa45", "#b8cc7f", "#e7efd0"] },
+      "mist-green": { "role": "primary-container", "displayName": "Morning Mist Green", "canonical": "#e9f1cf", "tonalRamp": ["#1d2510", "#34401f", "#4f5e31", "#6c7d45", "#8c9d60", "#aebe80", "#cfdea6", "#eff6dc"] },
+      "warm-paper": { "role": "neutral", "displayName": "Warm Paper", "canonical": "#f5f3ed", "tonalRamp": ["#26251f", "#424038", "#5f5d53", "#7e7b70", "#9e9b90", "#bfbbb1", "#dfdcd4", "#f5f3ed"] },
+      "deep-paper": { "role": "neutral", "displayName": "Deep Paper", "canonical": "#ebe9e1", "tonalRamp": ["#24231e", "#3e3d36", "#5a5950", "#77766c", "#96948a", "#b6b4aa", "#d5d3ca", "#ebe9e1"] },
+      "card-ivory": { "role": "neutral", "displayName": "Card Ivory", "canonical": "#fffef9", "tonalRamp": ["#282722", "#45443d", "#636159", "#817f77", "#a09e96", "#c0beb7", "#dfded8", "#fffef9"] },
+      "near-black-green": { "role": "neutral", "displayName": "Near-Black Green", "canonical": "#1d2720", "tonalRamp": ["#111713", "#1d2720", "#344038", "#4d5b51", "#68766c", "#879389", "#adb6ae", "#e4e9e4"] },
+      "quiet-gray": { "role": "neutral", "displayName": "Quiet Gray", "canonical": "#687069", "tonalRamp": ["#202420", "#383d38", "#515852", "#687069", "#838b84", "#a0a7a0", "#c1c6c1", "#eef0ed"] },
+      "faint-gray": { "role": "neutral", "displayName": "Faint Gray", "canonical": "#656d66", "tonalRamp": ["#20231f", "#373c37", "#4e554f", "#656d66", "#818982", "#9fa69f", "#c1c6c1", "#edf0ec"] },
+      "warm-coral": { "role": "tertiary", "displayName": "Warm Coral", "canonical": "#f08d71", "tonalRamp": ["#3b160d", "#61281b", "#8b3d2a", "#b75740", "#dd7358", "#f08d71", "#f5b7a5", "#fbe2da"] },
+      "mist-coral": { "role": "tertiary-container", "displayName": "Blush Mist", "canonical": "#f7ded4", "tonalRamp": ["#321d17", "#51332a", "#724c40", "#95685a", "#b98576", "#daa799", "#efc9bd", "#f9e7e0"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Editorial Display", "purpose": "One decisive screen-level message." },
+      "headline": { "displayName": "Section Headline", "purpose": "Feature cards and major sections." },
+      "body": { "displayName": "Coaching Body", "purpose": "Instructions, rationale, and conversational copy." },
+      "label": { "displayName": "Tracked Label", "purpose": "Eyebrows, kickers, and compact metadata." }
+    },
+    "shadows": [
+      { "name": "ambient-surface", "value": "0 22px 60px rgba(41, 49, 36, 0.08)", "purpose": "Featured imagery and truly elevated panels." },
+      { "name": "floating-control", "value": "0 13px 40px rgba(29, 39, 32, 0.16)", "purpose": "Mobile navigation and overlapping controls." },
+      { "name": "glass-badge", "value": "0 8px 30px rgba(23, 35, 23, 0.12)", "purpose": "Translucent labels over photography." }
+    ],
+    "motion": [
+      { "name": "quick-response", "value": "150ms ease", "purpose": "Button lift, card hover, and simple state changes." },
+      { "name": "progress-step", "value": "300ms ease", "purpose": "Plan-building and progress indicators." }
+    ],
+    "breakpoints": [
+      { "name": "compact-desktop", "value": "980px" },
+      { "name": "mobile", "value": "720px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The main action: dark, pill-shaped, and comfortably touchable.",
+      "html": "<button class=\"ds-btn-primary\">Start session <span aria-hidden=\"true\">→</span></button>",
+      "css": ".ds-btn-primary{min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:999px;padding:0 24px;background:var(--ink,#1d2720);color:var(--card,#fffef9);font:690 16px/1 'Cofo Sans',sans-serif;cursor:pointer;transition:transform 150ms ease,opacity 150ms ease}.ds-btn-primary:hover{transform:translateY(-1px)}.ds-btn-primary:active{transform:none}.ds-btn-primary:focus-visible{outline:3px solid rgba(103,142,38,.28);outline-offset:2px}"
+    },
+    {
+      "name": "Featured Workout Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The energetic inversion used on dark training photography.",
+      "html": "<button class=\"ds-btn-workout\">Start session <span aria-hidden=\"true\">→</span></button>",
+      "css": ".ds-btn-workout{min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:999px;padding:0 24px;background:var(--green,#bddb50);color:var(--ink,#1d2720);font:690 16px/1 'Cofo Sans',sans-serif;cursor:pointer;transition:transform 150ms ease}.ds-btn-workout:hover{transform:translateY(-1px)}.ds-btn-workout:focus-visible{outline:3px solid rgba(255,255,255,.7);outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "An ivory, softly outlined field for explicit typed equivalents.",
+      "html": "<label class=\"ds-field-label\">Today's weight<input class=\"ds-field\" placeholder=\"kg\"></label>",
+      "css": ".ds-field-label{display:grid;gap:8px;color:var(--muted,#687069);font:620 12px/1.2 'Cofo Sans',sans-serif}.ds-field{width:100%;border:1px solid rgba(29,39,32,.11);border-radius:15px;background:var(--card,#fffef9);padding:14px 15px;color:var(--ink,#1d2720);font:400 16px/1.4 'Cofo Sans',sans-serif}.ds-field:focus-visible{outline:3px solid rgba(103,142,38,.28);outline-offset:2px}"
+    },
+    {
+      "name": "Queue Chip",
+      "kind": "chip",
+      "refersTo": "card",
+      "description": "A compact rotation card with a distinct current state.",
+      "html": "<span class=\"ds-queue-chip ds-active\"><i></i>Legs</span>",
+      "css": ".ds-queue-chip{min-height:44px;display:inline-flex;align-items:center;gap:8px;padding:0 13px;border:1px solid rgba(29,39,32,.11);border-radius:14px;background:var(--card,#fffef9);color:var(--muted,#687069);font:650 13px/1 'Cofo Sans',sans-serif}.ds-queue-chip i{width:7px;height:7px;border:1px solid currentColor;border-radius:50%}.ds-queue-chip.ds-active{border-color:var(--ink,#1d2720);background:var(--ink,#1d2720);color:#fff}.ds-queue-chip.ds-active i{border-color:var(--green,#bddb50);background:var(--green,#bddb50)}"
+    },
+    {
+      "name": "Content Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The quiet ivory reading surface used for sessions, meals, and metrics.",
+      "html": "<article class=\"ds-card\"><span class=\"ds-kicker\">Next card</span><h3>Lower body + core</h3><p>Squat pattern and trunk control</p></article>",
+      "css": ".ds-card{max-width:360px;padding:24px;border:1px solid rgba(29,39,32,.11);border-radius:28px;background:var(--card,#fffef9);color:var(--ink,#1d2720);font-family:'Cofo Sans',sans-serif}.ds-card h3{margin:18px 0 5px;font-size:25px;line-height:1.04;letter-spacing:-.035em}.ds-card p{margin:0;color:var(--muted,#687069);line-height:1.45}.ds-kicker{color:var(--green-ink,#416313);font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}"
+    },
+    {
+      "name": "Segmented Navigation",
+      "kind": "nav",
+      "refersTo": "card",
+      "description": "A compact desktop destination switch with a softly raised active item.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary\"><button class=\"active\">Today</button><button>Plan</button><button>Progress</button></nav>",
+      "css": ".ds-nav{display:inline-flex;align-items:center;gap:6px;padding:5px;border-radius:999px;background:rgba(230,229,220,.65);font-family:'Cofo Sans',sans-serif}.ds-nav button{min-height:38px;border:0;background:transparent;padding:0 17px;border-radius:999px;color:var(--muted,#687069);cursor:pointer}.ds-nav button.active{background:var(--card,#fffef9);color:var(--ink,#1d2720);box-shadow:0 3px 12px rgba(29,39,32,.08)}.ds-nav button:focus-visible{outline:3px solid rgba(103,142,38,.28);outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Calm Training Journal",
+    "overview": "Wellie should feel like a thoughtful paper training journal that happens to be alive: warm, spacious, direct, and quietly responsive to what the user actually did. Large editorial headlines make the next action feel important, while compact labels and practical cards keep data understandable without turning the product into a dashboard.\n\nThe visual system is supportive rather than clinical. Warm paper, ivory cards, near-black green text, and a restrained pea accent replace pure white, hard black, and saturated fitness-app color. Photography and camera views bring energy; the surrounding chrome stays calm enough that the user's plan, meal, or movement remains the subject.",
+    "keyCharacteristics": [
+      "Warm paper atmosphere with softly separated ivory surfaces.",
+      "Editorial scale for one clear message per screen.",
+      "Pea green reserved for progress, readiness, and primary workout actions.",
+      "Rounded, tactile controls sized for one-handed mobile use.",
+      "Dark, minimal chrome around camera experiences."
+    ],
+    "rules": [
+      { "name": "The Green Means Progress Rule", "body": "Bright pea green signals a useful next step, readiness, or measurable progress; it is not general decoration.", "section": "colors" },
+      { "name": "The Warm Neutral Rule", "body": "Surfaces stay warm. Avoid pure white and cold gray additions that make the system feel clinical.", "section": "colors" },
+      { "name": "The One Family Rule", "body": "Every visible word uses the bundled Cofo Sans variable font; differentiation comes from scale, weight, spacing, and color.", "section": "typography" },
+      { "name": "The One Message Rule", "body": "Give each primary surface one large headline. Do not create competing display-size statements in the same viewport.", "section": "typography" },
+      { "name": "The Thumb-First Rule", "body": "On mobile, the frequent action belongs near the bottom; headers carry identity and escape routes, not the whole interaction.", "section": "layout" },
+      { "name": "The Queue, Not Calendar Rule", "body": "Training layouts describe the next card and rotation progress; do not visually imply overdue sessions or date debt.", "section": "layout" },
+      { "name": "The Flat-by-Default Rule", "body": "A border and tonal shift establish most hierarchy. Add a shadow only when a surface truly floats or overlaps another.", "section": "elevation" },
+      { "name": "The Soft Geometry Rule", "body": "Containers may vary in radius by scale, but they never become sharp rectangles or decorative bubbles without a role.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do keep one prominent next action per screen and place it in the mobile thumb zone.",
+      "Do preserve warm paper and ivory tonal separation before reaching for shadow.",
+      "Do use pea green for progress, readiness, and the workout action.",
+      "Do test every surface at 320px, in Japanese, and with safe-area insets.",
+      "Do keep camera overlays readable from roughly two metres away."
+    ],
+    "donts": [
+      "Don't add another font, pure black, pure white, or cold blue-gray to the core interface.",
+      "Don't use pea green as decoration or for long body text.",
+      "Don't let floating controls cover the content they confirm or the phone's home indicator.",
+      "Don't rely on hover, icon-only meaning, or color alone for a critical action.",
+      "Don't turn the queue into a dated streak or overdue calendar."
+    ]
+  }
+}

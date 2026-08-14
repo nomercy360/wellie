@@ -14,7 +14,7 @@
   --card: #fffef9;
   --ink: #1d2720;
   --muted: #687069;
-  --faint: #929991;
+  --faint: #656d66;
   --line: rgba(29, 39, 32, 0.11);
   --green: #bddb50;
   --green-ink: #416313;
@@ -32,7 +32,7 @@ button { color: inherit; }
 button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid rgba(103, 142, 38, 0.28); outline-offset: 2px; }
 
 h1, h2, h3, p { margin: 0; }
-h1 { font-size: clamp(2.45rem, 5vw, 5.25rem); font-weight: 470; line-height: 0.98; letter-spacing: -0.055em; text-wrap: balance; }
+h1 { font-size: clamp(2.45rem, 5vw, 5.25rem); font-weight: 470; line-height: 0.98; letter-spacing: -0.04em; text-wrap: balance; }
 h1 em { color: var(--green-ink); font-style: normal; font-weight: 760; }
 h2 { font-size: clamp(1.6rem, 2.5vw, 2.4rem); line-height: 1.02; letter-spacing: -0.035em; }
 h3 { font-size: 1.08rem; line-height: 1.2; }
@@ -48,11 +48,11 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
 .button-primary { background: var(--ink); color: white; }
 .button-secondary { border-color: var(--line); background: var(--card); }
 .button-ghost { background: transparent; color: var(--muted); padding-inline: 12px; }
-.icon-button { width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 999px; display: inline-grid; place-items: center; background: rgba(255, 254, 249, 0.8); cursor: pointer; }
+.icon-button { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 999px; display: inline-grid; place-items: center; background: rgba(255, 254, 249, 0.8); cursor: pointer; }
 .language-switch { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255, 254, 249, 0.82); }
-.language-switch button { min-width: 37px; height: 32px; border: 0; border-radius: 999px; padding: 0 9px; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.72rem; font-weight: 680; white-space: nowrap; }
+.language-switch button { min-width: 44px; height: 44px; border: 0; border-radius: 999px; padding: 0 10px; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.72rem; font-weight: 680; white-space: nowrap; }
 .language-switch button.active { background: var(--ink); color: white; }
-.language-switch.standalone { position: fixed; z-index: 60; top: 18px; right: clamp(16px, 4vw, 68px); }
+.language-switch.standalone { position: fixed; z-index: 60; top: max(18px, env(safe-area-inset-top)); right: max(clamp(16px, 4vw, 68px), env(safe-area-inset-right)); }
 .spinner { display: inline-flex; align-items: center; gap: 8px; }
 .spinner svg, .spin { animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -75,7 +75,7 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
 .intro-shell { min-height: 100dvh; padding: 22px clamp(20px, 4vw, 70px) clamp(22px, 4vw, 55px); display: flex; flex-direction: column; }
 .intro-top { display: flex; align-items: center; justify-content: space-between; height: 45px; }
 .intro-top-actions { display: flex; align-items: center; gap: 12px; }
-.intro-top-actions > button { border: 0; background: none; cursor: pointer; color: var(--muted); }
+.intro-top-actions > button { min-height: 44px; border: 0; background: none; padding: 0 4px; cursor: pointer; color: var(--muted); }
 .intro-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(360px, 1.08fr) minmax(360px, 0.92fr); gap: clamp(36px, 7vw, 115px); align-items: center; padding-top: 20px; }
 .intro-visual { position: relative; min-height: min(72vh, 730px); overflow: hidden; border-radius: 34px; background: var(--paper-deep); box-shadow: var(--shadow); }
 .intro-visual img { object-fit: cover; }
@@ -86,7 +86,7 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
 .intro-copy > p { margin-top: 24px; color: var(--muted); font-size: 1.08rem; line-height: 1.68; max-width: 540px; }
 .intro-actions { margin-top: 38px; display: flex; align-items: center; gap: 22px; }
 .dots { display: flex; gap: 7px; }
-.dots span { width: 7px; height: 7px; background: #d6d8ce; border-radius: 9px; transition: width 200ms; }
+.dots span { width: 7px; height: 7px; background: #d6d8ce; border-radius: 9px; }
 .dots span.active { width: 24px; background: var(--green); }
 
 /* Conversation */
@@ -180,7 +180,7 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
 .nutrition-card { display: flex; flex-direction: column; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .card-meta { display: none; color: var(--muted); font-size: 0.78rem; }
-.card-meta button { border: 0; background: none; padding: 0; color: var(--green-ink); text-decoration: underline; cursor: pointer; font-size: inherit; }
+.card-meta button { min-height: 44px; display: inline-flex; align-items: center; border: 0; background: none; padding: 0 4px; color: var(--green-ink); text-decoration: underline; cursor: pointer; font-size: inherit; }
 .nutrition-bars { display: none; gap: 14px; margin: 18px 0 0; }
 .nutrition-bars .bar-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .nutrition-bars strong { font-size: 1.15rem; letter-spacing: -0.03em; }
@@ -343,7 +343,7 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
 .bar-chart { height: 250px; display: flex; align-items: flex-end; gap: 7px; padding-top: 20px; border-bottom: 1px solid var(--line); }
 .bar-chart > div { flex: 1; min-width: 9px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
 .bar-chart i { width: min(28px, 75%); min-height: 15px; display: block; border-radius: 7px 7px 1px 1px; background: linear-gradient(var(--green), #83ad31); }
-.bar-chart span { color: var(--muted); font-size: 0.62rem; }
+.bar-chart span { color: var(--muted); font-size: 0.72rem; }
 .empty-inline { color: var(--muted); padding: 30px 0; }
 .weight-form { margin-top: 15px; display: flex; gap: 16px; align-items: center; padding: 20px; border: 1px solid var(--line); border-radius: 22px; background: var(--soft-green); }
 .weight-form label { display: flex; align-items: center; gap: 15px; flex: 1; color: var(--green-ink); font-weight: 650; }
@@ -375,10 +375,10 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
 }
 
 @media (max-width: 720px) {
-  .app-shell { padding-bottom: 80px; }
+  .app-shell { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
   h1 { letter-spacing: -0.045em; }
-  .intro-shell { padding: 15px 16px 22px; }
-  .intro-top { height: 42px; }
+  .intro-shell { padding: max(15px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .intro-top { min-height: 52px; }
   .intro-grid { display: flex; flex-direction: column; align-items: stretch; gap: 24px; padding-top: 10px; }
   .intro-visual { min-height: 44vh; border-radius: 24px; }
   .glass-badge { left: 14px; bottom: 14px; font-size: 0.78rem; padding: 10px 13px; }
@@ -396,7 +396,7 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
   .chat-panel { flex: 1; min-height: 0; padding: 0 0 max(7px, env(safe-area-inset-bottom)); }
   .chat-scroll { padding: 16px 0 12px; overscroll-behavior: contain; }
   .message > div { max-width: 85%; font-size: 0.92rem; }
-  .privacy-note { font-size: 0.64rem; }
+  .privacy-note { font-size: 0.72rem; }
 
   /* The sample plan moves out of the hidden aside and into the thread. */
   .sample-attachment { display: block; margin: 0 0 16px 35px; max-width: 280px; padding: 16px; border-radius: 18px; }
@@ -414,7 +414,7 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
   .chat-panel .composer-icon.is-listening { width: 48px; height: 48px; }
   .chat-panel .composer-send { width: 42px; height: 42px; }
 
-  .app-header { height: 61px; grid-template-columns: 1fr auto; padding: 0 16px; }
+  .app-header { min-height: calc(61px + env(safe-area-inset-top)); height: auto; grid-template-columns: 1fr auto; padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); }
   .app-header nav { display: none; }
   .header-actions > .log-food-button { display: none; }
   .mobile-nav { position: fixed; z-index: 40; inset: auto 8px max(8px, env(safe-area-inset-bottom)); height: 64px; display: grid; grid-template-columns: 1fr 1fr 64px 1fr 1fr; align-items: center; padding: 5px; background: rgba(255,254,249,.94); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 13px 40px rgba(29,39,32,.16); backdrop-filter: blur(18px); }
@@ -422,12 +422,13 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
   .mobile-nav button.active { background: var(--soft-green); color: var(--green-ink); }
   /* Scanning a meal is the most frequent action, so it gets the thumb zone. */
   .mobile-nav .nav-scan { width: 58px; height: 58px; margin: 0 auto; place-items: center; border-radius: 50%; background: var(--ink); color: var(--card); box-shadow: 0 10px 26px rgba(29,39,32,.35); transform: translateY(-14px); }
-  .app-content { min-height: calc(100dvh - 61px); }
+  .app-content { min-height: calc(100dvh - 61px - env(safe-area-inset-top)); }
   .app-shell.immersive { padding-bottom: 0; }
   .app-shell.immersive .app-header, .app-shell.immersive .mobile-nav { display: none; }
   .app-shell.immersive .app-content { min-height: 100dvh; }
 
   .today-page, .content-page, .review-shell, .content-page.narrow { width: calc(100% - 30px); padding: 35px 0 85px; }
+  .review-shell { padding-top: calc(68px + env(safe-area-inset-top)); }
   .today-heading { align-items: flex-start; }
   .today-heading h1 { font-size: 2.3rem; margin-top: 10px; }
   .date-chip { display: none; }
@@ -486,6 +487,15 @@ h3 { font-size: 1.08rem; line-height: 1.2; }
   .weight-form { flex-wrap: wrap; }
   .weight-form label { width: calc(100% - 40px); }
   .settings-list > div { grid-template-columns: 1fr; gap: 5px; }
+}
+
+@media (max-width: 360px) {
+  .capture-choices { width: min(260px, calc(100vw - 48px)); grid-template-columns: 1fr; gap: 8px; }
+  .capture-choice { min-height: 48px; padding-inline: 14px; }
+  .food-stage.is-viewfinder { height: min(480px, 68dvh); }
+  .rotation-panel { padding-inline: 12px; }
+  .rotation-panel ol { gap: 5px; }
+  .rotation-panel li { padding-inline: 5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
