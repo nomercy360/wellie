@@ -1,0 +1,58 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "wellie-api",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-08-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "secrets": {
+    "required": ["ORCA_API_KEY"]
+  },
+  "vars": {
+    "ACCOUNT_ID": "anonymous",
+    // Provider login is not exposed by the web product. These stay empty only
+    // for source compatibility with account-merge diagnostics.
+    "APPLE_CLIENT_IDS": "",
+    "GOOGLE_CLIENT_IDS": "",
+    "ORCA_BASE_URL": "https://api.orcarouter.ai",
+    "RECOGNITION_MODEL": "google/gemini-3.6-flash",
+    "RECOGNITION_THINKING_LEVEL": "low",
+    "MEAL_PROMPT_VERSION": "meal-v25-2026-08-13",
+    // Search as a tool on the recognition call itself. This is what fixes a
+    // chain's numbers: the model searches when the food is branded, ignores
+    // search when it is not, and answers in the same schema either way.
+    "RECOGNITION_SEARCH": "on",
+    "RECOGNITIONS_PER_DAY": "400",
+    "RECOGNITIONS_PER_DEVICE_PER_DAY": "40"
+  },
+  // Per-colo, so this is a burst dampener rather than a spend ceiling — the
+  // daily budget in the worker is what actually bounds the bill.
+  "ratelimits": [
+    {
+      "name": "RECOGNITION_LIMIT",
+      "namespace_id": "2001",
+      "simple": { "limit": 12, "period": 60 }
+    },
+    {
+      "name": "SYNC_LIMIT",
+      "namespace_id": "2002",
+      "simple": { "limit": 60, "period": 60 }
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "wellie-media"
+    }
+  ],
+  "triggers": {
+    "crons": ["0 3 * * SUN"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wellie",
+      "database_id": "f3f5bf4d-0849-411d-aa82-53a999ff3ce7",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

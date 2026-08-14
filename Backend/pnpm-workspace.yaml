@@ -1,0 +1,10 @@
+allowBuilds:
+  '@playwright/browser-chromium': false
+  '@swc/core': false
+  esbuild: true
+  onnxruntime-node: false
+  protobufjs: false
+  sharp: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - hono@4.12.34

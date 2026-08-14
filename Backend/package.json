@@ -1,0 +1,44 @@
+{
+  "name": "wellie-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=24.14 <25"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "pnpm verify && wrangler deploy",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.eval.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "verify": "pnpm typecheck && pnpm test && pnpm check",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply wellie --local",
+    "db:migrate:remote": "wrangler d1 migrations apply wellie --remote",
+    "cf:typegen": "wrangler types",
+    "eval:nutrition": "tsx eval/score-nutrition.ts"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "0.9.0",
+    "drizzle-orm": "0.45.2",
+    "hono": "4.12.34",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.6",
+    "@cloudflare/workers-types": "5.20260801.1",
+    "@types/node": "24.13.3",
+    "@vitest/coverage-v8": "4.1.10",
+    "drizzle-kit": "0.31.10",
+    "promptfoo": "^0.121.20",
+    "sharp": "0.35.3",
+    "tsx": "^4.23.5",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10",
+    "wrangler": "4.118.0"
+  }
+}

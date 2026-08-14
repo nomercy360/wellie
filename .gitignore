@@ -1,0 +1,27 @@
+.DS_Store
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj/
+*.xcworkspace/
+*.xcuserstate
+xcuserdata/
+build/
+Pods/
+
+# SwiftPM dependencies are conditional; do not pin two incompatible graphs.
+Core/Package.resolved
+
+# Backend dependencies and local Cloudflare state.
+Backend/node_modules/
+Backend/coverage/
+Backend/.wrangler/
+Backend/.dev.vars*
+!Backend/.dev.vars.example
+Backend/worker-configuration.d.ts
+
+.env
+secrets.json
+
+# Project-local App Store Connect credentials (never commit private keys).
+.appstoreconnect/
