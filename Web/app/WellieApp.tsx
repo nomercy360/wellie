@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Dumbbell,
   Home,
+  ImagePlus,
   LoaderCircle,
   Mic,
   RefreshCw,
@@ -533,15 +534,18 @@ function FoodView({ today, onLogged, onBack }: { today: Today | null; onLogged: 
         </div>
       ) : (
         <div className="food-stage is-viewfinder">
-          <label className="viewfinder">
+          <div className="viewfinder">
             {preview && <Image src={preview} alt={t("mealSelectedAlt")} fill unoptimized sizes="100vw" />}
             <span className="viewfinder-inner">
               <span className="viewfinder-icon"><Camera size={27} /></span>
               <strong>{t("choosePhoto")}</strong>
               <span>{t("photoFormats")}</span>
+              <span className="capture-choices">
+                <label className="capture-choice camera-choice"><Camera size={18} /> {t("takePhoto")}<input type="file" accept="image/*" capture="environment" onChange={(e) => setFile(e.target.files?.[0] || null)} /></label>
+                <label className="capture-choice gallery-choice"><ImagePlus size={18} /> {t("chooseGallery")}<input type="file" accept="image/jpeg,image/png,image/webp,image/heic" onChange={(e) => setFile(e.target.files?.[0] || null)} /></label>
+              </span>
             </span>
-            <input type="file" accept="image/jpeg,image/png,image/heic" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-          </label>
+          </div>
           <button type="button" className="stage-back" onClick={onBack} aria-label={t("back")}><ArrowLeft size={20} /></button>
         </div>
       )}

@@ -154,6 +154,6 @@ export async function fileToPayload(file: File) {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
-  const mimeType = file.type === "image/png" || file.type === "image/heic" ? file.type : "image/jpeg";
+  const mimeType = ["image/png", "image/webp", "image/heic"].includes(file.type) ? file.type : "image/jpeg";
   return { imageBase64, mimeType };
 }

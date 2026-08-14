@@ -51,8 +51,8 @@ test("the next queued session remains available for continuous testing", async (
   assert.doesNotMatch(source, /disabled=\{today\.sessionCompleted\}/);
 });
 
-test("meal photos can be selected from the gallery", async () => {
+test("meal photos have separate camera and gallery inputs", async () => {
   const source = await readFile(new URL("../app/WellieApp.tsx", import.meta.url), "utf8");
-  assert.match(source, /type="file"[^>]*accept="image\/jpeg,image\/png,image\/heic"/);
-  assert.doesNotMatch(source, /type="file"[^>]*capture=/);
+  assert.match(source, /className="capture-choice camera-choice"[^>]*>[\s\S]*?type="file"[^>]*accept="image\/\*"[^>]*capture="environment"/);
+  assert.match(source, /className="capture-choice gallery-choice"[^>]*>[\s\S]*?type="file"[^>]*accept="image\/jpeg,image\/png,image\/webp,image\/heic"/);
 });
