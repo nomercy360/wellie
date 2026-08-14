@@ -27,6 +27,7 @@ import { I18nProvider, useI18n } from "./i18n";
 import type {
   ChatMessage,
   CheckIn,
+  Goal,
   Meal,
   MealReading,
   Ping,
@@ -106,11 +107,13 @@ type SpeechRecognitionLike = {
   onerror: (() => void) | null;
 };
 
-function VoiceComposer({ placeholder, busy, onSend }: { placeholder: string; busy?: boolean; onSend: (value: string) => void | Promise<void> }) {
+function VoiceComposer({ placeholder, busy, detached = false, autoListen = false, onSend }: { placeholder: string; busy?: boolean; detached?: boolean; autoListen?: boolean; onSend: (value: string) => void | Promise<void> }) {
   const { t } = useI18n();
   const [value, setValue] = useState("");
   const [listening, setListening] = useState(false);
   const recognition = useRef<SpeechRecognitionLike | null>(null);
+  const autoStarted = useRef(false);
+  useEffect(() => () => recognition.current?.stop(), []);
 
   const submit = (event?: FormEvent) => {
     event?.preventDefault();
@@ -143,17 +146,36 @@ function VoiceComposer({ placeholder, busy, onSend }: { placeholder: string; bus
     instance.start();
   };
 
-  return (
-    <form className="composer" onSubmit={submit}>
-      <button type="button" className={cx("composer-icon", listening && "is-listening")} onClick={listen} aria-label={listening ? t("stopListening") : t("dictate")}>
-        <Mic size={19} />
-      </button>
+  // Opened from a mic button, so start dictating right away — speech first.
+  useEffect(() => {
+    if (!autoListen || autoStarted.current) return;
+    autoStarted.current = true;
+    listen();
+  });
+
+  const mic = (
+    <button type="button" className={cx("composer-icon", listening && "is-listening")} onClick={listen} aria-label={listening ? t("stopListening") : t("dictate")}>
+      <Mic size={detached ? 22 : 19} />
+    </button>
+  );
+  const field = (
+    <>
       <input value={value} onChange={(event) => setValue(event.target.value)} placeholder={placeholder} disabled={busy} aria-label={placeholder} />
       <button className="composer-send" type="submit" disabled={!value.trim() || busy} aria-label={t("send")}>
         {busy ? <LoaderCircle size={18} className="spin" /> : <Send size={18} />}
       </button>
-    </form>
+    </>
   );
+
+  if (detached) {
+    return (
+      <form className="composer-bar" onSubmit={submit}>
+        {mic}
+        <div className="composer">{field}</div>
+      </form>
+    );
+  }
+  return <form className="composer" onSubmit={submit}>{mic}{field}</form>;
 }
 
 function Intro({ onFinish }: { onFinish: () => void }) {
@@ -198,42 +220,60 @@ function Intro({ onFinish }: { onFinish: () => void }) {
   );
 }
 
-function Conversation({ messages, suggestions, busy, error, onSay }: { messages: ChatMessage[]; suggestions: string[]; busy: boolean; error: string | null; onSay: (message: string) => Promise<void> }) {
+function SamplePlanCard({ className }: { className?: string }) {
+  const { t } = useI18n();
+  return (
+    <div className={cx("sample-card", className)}>
+      <span>{t("samplePlan")}</span>
+      <strong>{t("sampleGoal")}</strong>
+      <div className="mini-week">{t("sampleWeekdays").split(",").map((day, i) => <b key={`${day}-${i}`} className={[0, 2, 4].includes(i) ? "active" : ""}>{day}</b>)}</div>
+      <small>{t("samplePlanDetail")}</small>
+    </div>
+  );
+}
+
+function Conversation({ messages, suggestions, remaining, busy, error, onSay }: { messages: ChatMessage[]; suggestions: string[]; remaining: number | null; busy: boolean; error: string | null; onSay: (message: string) => Promise<void> }) {
   const { t } = useI18n();
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
     // Newer browsers may return a value from scrollIntoView. Never return it
     // from an effect: React would treat that value as an unmount cleanup.
     end.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, busy]);
+  }, [messages, busy, suggestions]);
+  const progressLabel = remaining == null ? null : remaining === 0 ? t("allDetailsIn") : remaining === 1 ? t("detailLeft") : t("detailsLeft", { count: remaining });
   return (
     <main className="conversation-shell">
-      <header className="conversation-header"><span className="wordmark"><Orb size={25} /> Wellie</span><div className="conversation-header-actions"><span>{t("goalSetup")}</span><LanguageSwitch /></div></header>
+      <header className="conversation-header">
+        <span className="wordmark"><Orb size={25} /> Wellie</span>
+        <div className="conversation-header-actions">
+          <span>{t("goalSetup")}</span>
+          {progressLabel && <span className="setup-chip">{progressLabel}</span>}
+          <LanguageSwitch />
+        </div>
+      </header>
       <div className="conversation-layout">
         <aside className="conversation-aside">
           <div className="step-label">{t("startsWithWords")}</div>
           <h1>{t("tellWant")}<br /><em>{t("makeWorkable")}</em></h1>
           <p>{t("onboardingBody")}</p>
-          <div className="sample-card">
-            <span>{t("samplePlan")}</span>
-            <strong>{t("sampleGoal")}</strong>
-            <div className="mini-week">{t("sampleWeekdays").split(",").map((day, i) => <b key={`${day}-${i}`} className={[0, 2, 4].includes(i) ? "active" : ""}>{day}</b>)}</div>
-            <small>{t("samplePlanDetail")}</small>
-          </div>
+          <SamplePlanCard />
         </aside>
         <section className="chat-panel">
           <div className="chat-scroll" aria-live="polite">
-            {messages.map((message) => (
-              <div key={message.id} className={cx("message", message.role)}>
-                {message.role === "coach" && <Orb size={24} />}
-                <div>{message.text}</div>
+            {messages.map((message, index) => (
+              <div key={message.id}>
+                <div className={cx("message", message.role)}>
+                  {message.role === "coach" && <Orb size={24} />}
+                  <div>{message.text}</div>
+                </div>
+                {index === 0 && message.role === "coach" && <SamplePlanCard className="sample-attachment" />}
               </div>
             ))}
             {busy && <div className="message coach"><Orb size={24} /><div className="thinking"><span /><span /><span /></div></div>}
-            {suggestions.length > 0 && <div className="suggestions">{suggestions.map((suggestion) => <button key={suggestion} disabled={busy} onClick={() => void onSay(suggestion)}>{suggestion}</button>)}</div>}
             {error && <p className="error-line">{error}</p>}
             <div ref={end} />
           </div>
+          {suggestions.length > 0 && <div className="suggestions">{suggestions.map((suggestion) => <button key={suggestion} disabled={busy} onClick={() => void onSay(suggestion)}>{suggestion}</button>)}</div>}
           <VoiceComposer placeholder={t("goalPlaceholder")} busy={busy} onSend={onSay} />
           <small className="privacy-note">{t("privacyNote")}</small>
         </section>
@@ -317,12 +357,38 @@ function NutritionRing({ consumed, target, label }: { consumed: number; target: 
   );
 }
 
-function TodayView({ today, onOpen }: { today: Today; onOpen: (view: View) => void }) {
+function NutritionBars({ today }: { today: Today }) {
+  const { formatNumber, t } = useI18n();
+  const kcalLeft = today.kcalTarget - today.kcalConsumed;
+  const proteinLeft = today.proteinTargetG - today.proteinConsumedG;
+  const width = (consumed: number, target: number) => `${Math.min(100, target ? (consumed / target) * 100 : 0)}%`;
+  return (
+    <div className="nutrition-bars">
+      <div>
+        <div className="bar-head">
+          <strong>{formatNumber(today.kcalConsumed)} <span>{t("kcalOf", { target: formatNumber(today.kcalTarget) })}</span></strong>
+          <span className={kcalLeft >= 0 ? "accent" : ""}>{kcalLeft >= 0 ? t("kcalLeft", { value: formatNumber(kcalLeft) }) : t("kcalOver", { value: formatNumber(-kcalLeft) })}</span>
+        </div>
+        <div className="progress-track"><i style={{ width: width(today.kcalConsumed, today.kcalTarget) }} /></div>
+      </div>
+      <div>
+        <div className="bar-head">
+          <strong>{today.proteinConsumedG} <span>{t("proteinOf", { target: today.proteinTargetG })}</span></strong>
+          <span>{proteinLeft > 0 ? t("proteinLeft", { value: proteinLeft }) : t("proteinDone")}</span>
+        </div>
+        <div className="progress-track"><i style={{ width: width(today.proteinConsumedG, today.proteinTargetG) }} /></div>
+      </div>
+    </div>
+  );
+}
+
+function TodayView({ today, adjustment, onOpen }: { today: Today; adjustment?: string | null; onOpen: (view: View) => void }) {
   const { dateLocale, t } = useI18n();
   const workout = today.cards.find((card) => card.kind === "workout");
   return (
     <main className="today-page">
       <header className="today-heading"><div><span className="eyebrow"><Orb size={18} /> {today.greeting}</span><h1>{today.headline}</h1></div><span className="date-chip">{new Date(`${today.day}T12:00:00`).toLocaleDateString(dateLocale, { weekday: "long", month: "short", day: "numeric" })}</span></header>
+      {adjustment && <div className="coach-note" role="note" aria-label={t("coachAdjusted")}><Sparkles size={17} /> <span>{adjustment}</span></div>}
       <section className="today-grid">
         <article className="hero-card workout-hero">
           <div className="card-kicker"><Dumbbell size={16} /> {t("tonightTraining")}</div>
@@ -336,11 +402,15 @@ function TodayView({ today, onOpen }: { today: Today; onOpen: (view: View) => vo
           </>}
         </article>
         <article className="hero-card nutrition-card">
-          <div className="card-kicker"><Utensils size={16} /> {t("foodToday")}</div>
+          <div className="card-head">
+            <div className="card-kicker"><Utensils size={16} /> {t("foodToday")}</div>
+            <span className="card-meta">{t("mealCount", { count: today.meals.length })} · <button onClick={() => onOpen("meals")}>{t("seeAll")}</button></span>
+          </div>
           <div className="nutrition-layout">
             <NutritionRing consumed={today.kcalConsumed} target={today.kcalTarget} label="kcal" />
             <div><strong>{today.proteinConsumedG} / {today.proteinTargetG}g</strong><span>{t("protein")}</span><div className="progress-track"><i style={{ width: `${Math.min(100, today.proteinTargetG ? today.proteinConsumedG / today.proteinTargetG * 100 : 0)}%` }} /></div></div>
           </div>
+          <NutritionBars today={today} />
           <div className="card-actions"><Button onClick={() => onOpen("food")}><Camera size={17} /> {t("scanMeal")}</Button><Button kind="ghost" onClick={() => onOpen("meals")}>{t("viewLogged", { count: today.meals.length || "" })}</Button></div>
         </article>
         <button className="detail-card clickable" onClick={() => onOpen("checkin")}>
@@ -404,7 +474,7 @@ function CheckInView({ value, busy, onSubmit, onBack }: { value: CheckIn | null;
   );
 }
 
-function FoodView({ onLogged, onBack }: { onLogged: () => Promise<void>; onBack: () => void }) {
+function FoodView({ today, onLogged, onBack }: { today: Today | null; onLogged: () => Promise<void>; onBack: () => void }) {
   const { t } = useI18n();
   const [file, setFile] = useState<File | null>(null);
   const [said, setSaid] = useState("");
@@ -412,6 +482,7 @@ function FoodView({ onLogged, onBack }: { onLogged: () => Promise<void>; onBack:
   const [logged, setLogged] = useState<Meal | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dictating, setDictating] = useState(false);
   const preview = useMemo(() => file ? URL.createObjectURL(file) : null, [file]);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
@@ -421,6 +492,7 @@ function FoodView({ onLogged, onBack }: { onLogged: () => Promise<void>; onBack:
     try {
       const payload = file ? await fileToPayload(file) : {};
       setReading(await api.recognizeMeal({ ...payload, ...(description?.trim() && { said: description.trim() }) }));
+      setDictating(false);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t("mealReadError")); }
     finally { setBusy(false); }
   };
@@ -441,23 +513,59 @@ function FoodView({ onLogged, onBack }: { onLogged: () => Promise<void>; onBack:
     finally { setBusy(false); }
   };
   const shown = logged || reading?.recognition;
+  const confidence = !logged && reading ? reading.recognition.confidence : null;
+  const dictate = (
+    <button type="button" className="composer-icon" onClick={() => setDictating((open) => !open)} aria-label={shown ? t("correctByVoice") : t("dictate")} aria-expanded={dictating}>
+      <Mic size={22} />
+    </button>
+  );
   return (
-    <main className="content-page narrow">
-      <PageHeader eyebrow={t("plateReader")} title={shown ? shown.title : t("showPlate")} body={shown ? shown.summary : t("plateBody")} onBack={onBack} />
-      {preview && <div className="food-preview"><Image src={preview} alt={t("mealSelectedAlt")} fill unoptimized /></div>}
-      {!shown && <div className="food-input-card">
-        <label className="photo-drop"><Camera size={25} /><strong>{t("choosePhoto")}</strong><span>JPG, PNG, HEIC</span><input type="file" accept="image/jpeg,image/png,image/heic" capture="environment" onChange={(e) => setFile(e.target.files?.[0] || null)} /></label>
-        <span className="or">{t("or")}</span>
-        <VoiceComposer placeholder={t("describeMeal")} busy={busy} onSend={(value) => { setSaid(value); return recognize(value); }} />
-        {busy && !file && <div className="model-wait"><Spinner label={t("readingPlate")} /><small>{t("modelWait")}</small></div>}
-        {file && <Button disabled={busy} onClick={() => void recognize(said)}>{busy ? <Spinner label={t("readingPlate")} /> : <>{t("readPlate")} <Sparkles size={17} /></>}</Button>}
-      </div>}
-      {shown && <div className="meal-result">
-        <div className="macro-strip meal-macros"><div><strong>{shown.kcal}</strong><span>kcal</span></div><div className="accent"><strong>{shown.proteinG}g</strong><span>{t("protein")}</span></div><div><strong>{shown.carbsG}g</strong><span>{t("carbs")}</span></div><div><strong>{shown.fatG}g</strong><span>{t("fat")}</span></div></div>
-        {!logged && reading && <><div className={cx("confidence", reading.recognition.confidence)}><span /> {t("confidence", { level: t(reading.recognition.confidence === "high" ? "confidenceHigh" : reading.recognition.confidence === "medium" ? "confidenceMedium" : "confidenceLow") })}</div><Button disabled={busy} onClick={() => void log()}>{busy ? <Spinner label={t("logging")} /> : <>{t("logLooksRight")} <Check size={17} /></>}</Button></>}
-        {logged && <><div className="success-line"><Check size={17} /> {t("mealLogged")}</div><VoiceComposer placeholder={t("portionPlaceholder")} busy={busy} onSend={correct} />{busy && <div className="model-wait"><Spinner label={t("correctingMeal")} /><small>{t("modelWait")}</small></div>}</>}
-      </div>}
-      {error && <p className="error-line">{error}</p>}
+    <main className={cx("content-page narrow food-page", (shown ? preview : true) && "has-stage")}>
+      {shown ? preview && (
+        <div className="food-stage is-photo">
+          <Image src={preview} alt={t("mealSelectedAlt")} fill unoptimized sizes="100vw" />
+          <button type="button" className="stage-back" onClick={onBack} aria-label={t("back")}><ArrowLeft size={20} /></button>
+          {confidence && <span className={cx("glass-badge confidence-badge", confidence)}><span /> {t("confidenceShort", { level: t(confidence === "high" ? "confidenceHigh" : confidence === "medium" ? "confidenceMedium" : "confidenceLow") })}</span>}
+        </div>
+      ) : (
+        <div className="food-stage is-viewfinder">
+          <label className="viewfinder">
+            {preview && <Image src={preview} alt={t("mealSelectedAlt")} fill unoptimized sizes="100vw" />}
+            <span className="viewfinder-inner">
+              <span className="viewfinder-icon"><Camera size={27} /></span>
+              <strong>{t("choosePhoto")}</strong>
+              <span>{t("photoFormats")}</span>
+            </span>
+            <input type="file" accept="image/jpeg,image/png,image/heic" capture="environment" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+          </label>
+          <button type="button" className="stage-back" onClick={onBack} aria-label={t("back")}><ArrowLeft size={20} /></button>
+        </div>
+      )}
+      <PageHeader eyebrow={t("plateReader")} title={shown ? shown.title : t("showPlate")} body={shown ? shown.summary : t("plateDescribeBody")} onBack={onBack} />
+      <div className="food-body">
+        {shown && <>
+          <div className="macro-strip meal-macros"><div><strong>{shown.kcal}</strong><span>kcal</span></div><div className="accent"><strong>{shown.proteinG}g</strong><span>{t("protein")}</span></div><div><strong>{shown.carbsG}g</strong><span>{t("carbs")}</span></div><div><strong>{shown.fatG}g</strong><span>{t("fat")}</span></div></div>
+          {!preview && confidence && <div className={cx("confidence", confidence)}><span /> {t("confidence", { level: t(confidence === "high" ? "confidenceHigh" : confidence === "medium" ? "confidenceMedium" : "confidenceLow") })}</div>}
+          {/* Before logging the reading is not in today's totals yet; after logging it is. */}
+          {today && today.proteinTargetG > 0 && <div className="adjustment"><Sparkles size={17} /> {t("mealFitsNote", { value: today.proteinConsumedG + (logged ? 0 : shown.proteinG), target: today.proteinTargetG })}</div>}
+        </>}
+        {logged && <div className="success-line"><Check size={17} /> {t("mealLogged")}</div>}
+        {busy && <div className="model-wait"><Spinner label={logged ? t("correctingMeal") : t("readingPlate")} /><small>{t("modelWait")}</small></div>}
+        {error && <p className="error-line">{error}</p>}
+      </div>
+      <div className="food-actions">
+        {dictating && !logged && <VoiceComposer placeholder={shown ? t("portionPlaceholder") : t("describeMeal")} busy={busy} autoListen onSend={(value) => { setSaid(value); return recognize(value); }} />}
+        {logged
+          ? <VoiceComposer detached placeholder={t("portionPlaceholder")} busy={busy} onSend={correct} />
+          : shown || file
+            ? <div className="food-actionbar">
+                {dictate}
+                <Button disabled={busy} onClick={() => shown ? void log() : void recognize(said)}>
+                  {busy ? <Spinner label={shown ? t("logging") : t("readingPlate")} /> : shown ? <>{t("logLooksRight")} <Check size={17} /></> : <>{t("readPlate")} <Sparkles size={17} /></>}
+                </Button>
+              </div>
+            : <VoiceComposer detached placeholder={t("describeMeal")} busy={busy} onSend={(value) => { setSaid(value); return recognize(value); }} />}
+      </div>
     </main>
   );
 }
@@ -654,14 +762,31 @@ function SettingsView({ ping, onReset, onReconnect, onBack }: { ping: Ping | nul
 
 function AppChrome({ view, onView, children }: { view: View; onView: (view: View) => void; children: ReactNode }) {
   const { t } = useI18n();
-  const nav: Array<{ id: View; label: string; icon: typeof Home }> = [{ id: "today", label: t("today"), icon: Home }, { id: "plan", label: t("plan"), icon: Dumbbell }, { id: "progress", label: t("progress"), icon: BarChart3 }, { id: "food", label: t("logFood"), icon: Camera }];
+  const nav: Array<{ id: View; label: string; icon: typeof Home }> = [{ id: "today", label: t("today"), icon: Home }, { id: "plan", label: t("plan"), icon: Dumbbell }, { id: "progress", label: t("progress"), icon: BarChart3 }, { id: "meals", label: t("meals"), icon: Utensils }];
+  const tab = (item: { id: View; label: string; icon: typeof Home }) => {
+    const Icon = item.icon;
+    return <button key={item.id} className={view === item.id ? "active" : ""} onClick={() => onView(item.id)} aria-current={view === item.id ? "page" : undefined}><Icon size={19} /><span>{item.label}</span></button>;
+  };
+  // Food capture is the most frequent action, so on mobile it becomes the raised
+  // centre button instead of a fifth equal tab.
   return (
-    <div className="app-shell">
+    <div className={cx("app-shell", view === "food" && "immersive")}>
       <header className="app-header"><button className="wordmark" onClick={() => onView("today")}><Orb size={25} /> Wellie</button><nav>{nav.slice(0, 3).map((item) => <button key={item.id} className={view === item.id ? "active" : ""} onClick={() => onView(item.id)}>{item.label}</button>)}</nav><div className="header-actions"><LanguageSwitch /><button className="log-food-button" onClick={() => onView("food")}><Camera size={18} /><span>{t("logFood")}</span></button><button className="icon-button" onClick={() => onView("settings")} aria-label={t("settings")}><Settings size={19} /></button></div></header>
       <div className="app-content">{children}</div>
-      <nav className="mobile-nav">{nav.map((item) => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? "active" : ""} onClick={() => onView(item.id)}><Icon size={19} /><span>{item.label}</span></button>; })}</nav>
+      <nav className="mobile-nav">
+        {nav.slice(0, 2).map(tab)}
+        <button className="nav-scan" onClick={() => onView("food")} aria-label={t("logFood")}><Camera size={23} /></button>
+        {nav.slice(2).map(tab)}
+      </nav>
     </div>
   );
+}
+
+// Mirrors the backend readiness rule: a plan needs a goal, height, weight and a
+// weekly session count. Everything else the coach asks about is optional.
+function detailsRemaining(profile: Profile | null, goal: Goal | null) {
+  if (!profile) return null;
+  return [goal, profile.heightCm, profile.weightKg, profile.sessionsPerWeek].filter((value) => value == null).length;
 }
 
 function WellieApplication() {
@@ -669,6 +794,7 @@ function WellieApplication() {
   const [stage, setStage] = useState<Stage>("launching");
   const [view, setView] = useState<View>("today");
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [goal, setGoal] = useState<Goal | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -702,7 +828,7 @@ function WellieApplication() {
         else throw cause;
       }
       setProfile(nextProfile);
-      const [goal, nextPlan] = await Promise.all([api.goal(), api.plan()]); setPlan(nextPlan);
+      const [goal, nextPlan] = await Promise.all([api.goal(), api.plan()]); setPlan(nextPlan); setGoal(goal);
       if (nextProfile.onboardingState !== "ready" || !goal) {
         const thread = await api.thread(); setMessages(thread.messages); setSuggestions(thread.suggestions);
         const introSeen = localStorage.getItem("wellie.hasSeenIntro") === "true" || thread.messages.length > 1;
@@ -722,7 +848,7 @@ function WellieApplication() {
     const pending: ChatMessage = { id: `pending-${Date.now()}`, role: "user", text: message, createdAt: Date.now() };
     setMessages((current) => [...current, pending]);
     try {
-      const turn = await api.say(message); setProfile(turn.profile); setSuggestions(turn.suggestions);
+      const turn = await api.say(message); setProfile(turn.profile); setGoal(turn.goal); setSuggestions(turn.suggestions);
       const thread = await api.thread(); setMessages(thread.messages);
       if (turn.ready) await buildPlan();
     } catch (cause) { setMessages((current) => current.filter((item) => item.id !== pending.id)); setError(cause instanceof Error ? cause.message : t("answerError")); }
@@ -753,7 +879,7 @@ function WellieApplication() {
 
   const reset = async () => {
     setBusy(true);
-    try { setProfile(await api.erase()); setPlan(null); setToday(null); setProgress(null); setCheckIn(null); const thread = await api.thread(); setMessages(thread.messages); setSuggestions(thread.suggestions); setView("today"); setStage("onboarding"); }
+    try { setProfile(await api.erase()); setPlan(null); setGoal(null); setToday(null); setProgress(null); setCheckIn(null); const thread = await api.thread(); setMessages(thread.messages); setSuggestions(thread.suggestions); setView("today"); setStage("onboarding"); }
     catch (cause) { setError(cause instanceof Error ? cause.message : t("eraseError")); }
     finally { setBusy(false); }
   };
@@ -761,16 +887,16 @@ function WellieApplication() {
   if (stage === "launching") return <main className="launch"><Orb size={54} /><span>Wellie</span></main>;
   if (stage === "error") return <main className="center-state error-state"><LanguageSwitch standalone /><Orb size={50} /><div className="step-label">{t("connectionNeeded")}</div><h1>{t("cantReach")}<br /><em>{t("ownBackend")}</em></h1><p>{error}</p><Button onClick={() => void bootstrap()}><RefreshCw size={17} /> {t("tryAgain")}</Button><button className="text-button" onClick={() => { setStage("ready"); setView("settings"); }}>{t("editConnection")}</button></main>;
   if (stage === "intro") return <Intro onFinish={() => { localStorage.setItem("wellie.hasSeenIntro", "true"); setStage("onboarding"); }} />;
-  if (stage === "onboarding") return <Conversation messages={messages} suggestions={suggestions} busy={busy} error={error} onSay={say} />;
+  if (stage === "onboarding") return <Conversation messages={messages} suggestions={suggestions} remaining={detailsRemaining(profile, goal)} busy={busy} error={error} onSay={say} />;
   if (stage === "building") return <BuildingPlan />;
   if (stage === "review" && plan) return <PlanView plan={plan} review busy={busy} onAccept={() => void acceptPlan()} />;
   if (stage === "ready") return (
     <AppChrome view={view} onView={setView}>
       {error && <div className="toast"><span>{error}</span><button onClick={() => setError(null)} aria-label={t("dismiss")}><X size={16} /></button></div>}
-      {view === "today" && (today ? <TodayView today={today} onOpen={setView} /> : <main className="center-state"><Spinner label={t("assemblingToday")} /></main>)}
+      {view === "today" && (today ? <TodayView today={today} adjustment={checkIn?.adjustment} onOpen={setView} /> : <main className="center-state"><Spinner label={t("assemblingToday")} /></main>)}
       {view === "plan" && plan && <PlanView plan={plan} onBack={() => setView("today")} busy={busy} />}
       {view === "checkin" && <CheckInView value={checkIn} busy={busy} onSubmit={submitCheckIn} onBack={() => setView("today")} />}
-      {view === "food" && <FoodView onLogged={refreshToday} onBack={() => setView("today")} />}
+      {view === "food" && <FoodView today={today} onLogged={refreshToday} onBack={() => setView("today")} />}
       {view === "meals" && <MealsView initial={today?.meals || []} onBack={() => setView("today")} />}
       {view === "workout" && <WorkoutView session={today?.session || null} onFinished={refreshToday} onBack={() => setView("today")} />}
       {view === "progress" && <ProgressView progress={progress} busy={busy} onLoad={loadProgress} onBack={() => setView("today")} />}
