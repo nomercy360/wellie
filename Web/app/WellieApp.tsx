@@ -536,7 +536,7 @@ function FoodView({ today, onLogged, onBack }: { today: Today | null; onLogged: 
               <strong>{t("choosePhoto")}</strong>
               <span>{t("photoFormats")}</span>
             </span>
-            <input type="file" accept="image/jpeg,image/png,image/heic" capture="environment" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+            <input type="file" accept="image/jpeg,image/png,image/heic" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </label>
           <button type="button" className="stage-back" onClick={onBack} aria-label={t("back")}><ArrowLeft size={20} /></button>
         </div>

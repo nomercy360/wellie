@@ -48,3 +48,9 @@ test("completed sessions remain repeatable for testing", async () => {
   assert.match(source, /today\.sessionCompleted[\s\S]{0,120}repeatSession/);
   assert.doesNotMatch(source, /disabled=\{today\.sessionCompleted\}/);
 });
+
+test("meal photos can be selected from the gallery", async () => {
+  const source = await readFile(new URL("../app/WellieApp.tsx", import.meta.url), "utf8");
+  assert.match(source, /type="file"[^>]*accept="image\/jpeg,image\/png,image\/heic"/);
+  assert.doesNotMatch(source, /type="file"[^>]*capture=/);
+});
